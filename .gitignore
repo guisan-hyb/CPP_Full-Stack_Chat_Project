@@ -1,0 +1,109 @@
+# ===============================
+# Qt 相关
+# ===============================
+*.moc
+moc_*.cpp
+moc_*.h
+qrc_*.cpp
+ui_*.h
+*.qm
+/.qmake.cache
+/.qmake.stash
+Makefile*
+*.pro.user*
+*.qbs.user*
+CMakeLists.txt.user*
+*build-*
+_object_script.*
+*_plugin_import.cpp
+*.autosave
+
+# ===============================
+# Visual Studio 2022 相关
+# ===============================
+## IDE 缓存与配置目录
+.vs/                          # [reference:0][reference:1]VS的本地设置、数据库与缓存目录
+
+## 用户与解决方案特定文件
+*.suo                         # [reference:2][reference:3]解决方案用户选项
+*.user                        # [reference:4][reference:5]项目用户选项
+*.sln.docstates              # 解决方案文档状态
+*.vcxproj.user               # [reference:7]VC++项目用户配置
+*.vcxproj.filters            # [reference:8]VC++项目筛选器
+
+## VS数据库与缓存文件
+*.VC.db                      # [reference:9][reference:10]VS的本地数据库
+*.VC.opendb                  # [reference:11]打开的数据库
+*.sdf                        # [reference:12]SQL Server Compact 数据库文件
+*.cachefile                  # [reference:13]缓存文件
+*.ncb                        # [reference:14]无编译浏览文件
+*.opensdf                    # [reference:15]打开的解决方案数据库
+ipch/                        # [reference:16][reference:17]IntelliSense 预编译头缓存
+
+## 构建输出目录 (递归匹配)
+[Dd]ebug/                    # 调试构建目录
+[Dd]ebugPublic/              # 公共调试目录
+[Rr]elease/                  # 发布构建目录
+[Rr]eleases/                 # 发布目录
+x64/                         # [reference:23]64位构建目录
+x86/                         # 32位构建目录
+ARM/                         # [reference:25]ARM构建目录
+ARM64/                       # [reference:26]ARM64构建目录
+[Bb]in/                      # [reference:28]二进制输出目录
+[Oo]bj/                      # [reference:30]对象文件目录
+build/                       # 构建目录
+bld/                         # 构建目录
+[Ll]og/                      # [reference:33]日志目录
+
+## 编译与链接产物
+*.exe                        # [reference:34][reference:35]可执行文件
+*.dll                        # [reference:36]动态链接库
+*.lib                        # [reference:37]静态库
+*.obj                        # [reference:38][reference:39]对象文件
+*.pdb                        # [reference:40][reference:41]程序数据库（调试符号）
+*.idb                        # [reference:42][reference:43]增量编译数据库
+*.ilk                        # [reference:44][reference:45]增量链接文件
+*.tlog                       # [reference:46]构建跟踪日志
+*.lastbuildstate             # [reference:47]上次构建状态
+*.unsuccessfulbuild          # [reference:48]构建失败标记
+*.tlist                      # [reference:49]类型列表
+*.lastbuildunit              # [reference:50]上次构建单元
+
+## 其他 VS 生成文件
+*.aps                        # [reference:51]资源文件辅助文件
+*.manifest                   # [reference:52]清单文件
+*.res                        # [reference:53]编译后的资源文件
+*.sbr                        # [reference:54]源浏览器文件
+*.pgc                        # [reference:55]按配置文件优化（PGO）数据
+*.pgd                        # [reference:56]PGO数据库
+
+# ===============================
+# 通用编译产物与临时文件
+# ===============================
+*.o
+*.out
+*.app
+*.log
+*.tmp
+*.temp
+*~
+*.swp
+*.swo
+
+# ===============================
+# 操作系统相关
+# ===============================
+.DS_Store                    # [reference:57]macOS目录文件
+Thumbs.db                    # [reference:58][reference:59]Windows缩略图缓存
+Desktop.ini                  # [reference:60]Windows桌面配置文件
+
+# ===============================
+# CMake (如果使用)
+# ===============================
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+CTestTestfile.cmake
+CMakeScripts/
+cmake-build-*/
