@@ -1,0 +1,9 @@
+<RCC>
+    <qresource prefix="/">
+        <file>res/guisan.png</file>
+        <file>res/jianchi.jpg</file>
+        <file>res/jianchi.ico</file>
+        <file>res/guisan_w.png</file>
+        <file>style/style_sheet.qss</file>
+    </qresource>
+</RCC>
