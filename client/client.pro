@@ -1,4 +1,4 @@
-QT += widgets
+QT += widgets network
 
 CONFIG += c++17
 
@@ -8,6 +8,7 @@ CONFIG += c++17
 
 SOURCES += \
     global.cpp \
+    httpmgr.cpp \
     logindialog.cpp \
     main.cpp \
     mainwindow.cpp \
@@ -15,17 +16,19 @@ SOURCES += \
 
 HEADERS += \
     global.h \
+    httpmgr.h \
     logindialog.h \
     mainwindow.h \
-    registerdialog.h
+    registerdialog.h \
+    singleton.h
 
 FORMS += \
     logindialog.ui \
     mainwindow.ui \
     registerdialog.ui
 
-RC_ICONS = icon.ico
-DESTDIR = ./bin
+RC_ICONS = icon.ico # icon
+DESTDIR = ./bin # 指定编译后生成的可执行文件（例如 .exe 文件）的输出目录
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
