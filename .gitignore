@@ -107,3 +107,36 @@ Makefile
 CTestTestfile.cmake
 CMakeScripts/
 cmake-build-*/
+
+# ===== Visual Studio 缓存文件  =====
+.vs/
+*.ipch
+*.aps
+*.suo
+*.user
+*.sdf
+*.opensdf
+*.VC.db
+*.VC.opendb
+
+# ===== 编译输出目录 =====
+/build/
+/bin/
+/lib/
+/out/
+x64/
+x86/
+Debug/
+Release/
+
+# ===== CMake 产生的中间文件 =====
+CMakeFiles/
+cmake_install.cmake
+CMakeCache.txt
+*.cmake
+
+# ===== 其他常见需忽略的文件 =====
+*.log
+*.db
+*.sqlite
+.DS_Store
