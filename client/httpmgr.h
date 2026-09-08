@@ -16,10 +16,11 @@ class HttpMgr : public QObject, public Singleton<HttpMgr>, public std::enable_sh
     friend class Singleton<HttpMgr>;
 public:
     ~HttpMgr();
+    void PostHttpReq(QUrl url,QJsonObject json,ReqId req_id,Modules mod);// url, 内容，某个模块具体功能的id, 哪个模块
 
 private:
     HttpMgr();
-    void PostHttpReq(QUrl url,QJsonObject json,ReqId req_id,Modules mod);// url, 内容，某个模块具体功能的id, 哪个模块
+
 
 private:
     QNetworkAccessManager _manager;

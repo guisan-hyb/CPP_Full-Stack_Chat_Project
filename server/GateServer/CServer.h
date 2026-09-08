@@ -2,10 +2,10 @@
 
 #include "const.h"
 
-class CSever : public std::enable_shared_from_this<CSever>
+class CServer : public std::enable_shared_from_this<CServer>
 {
 public:
-	CSever(net::io_context& ioc, unsigned short& port);
+	CServer(net::io_context& ioc, unsigned short& port);
 	void Start();
 
 private:

@@ -1,0 +1,19 @@
+{
+    "version": 3,
+    "configurePresets": [
+        {
+            "name": "windows-vcpkg",
+            "generator": "Visual Studio 17 2022",
+            "architecture": {
+                "value": "x64",
+                "strategy": "set"
+            },
+            "binaryDir": "${sourceDir}/build",
+            "cacheVariables": {
+                "CMAKE_TOOLCHAIN_FILE": "C:/vcpkg/scripts/buildsystems/vcpkg.cmake",
+                "BOOST_ROOT": "C:/boost_1_91_0",
+                "BOOST_NO_WARN_PATHS_ON_VS": "ON"
+            }
+        }
+    ]
+}

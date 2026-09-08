@@ -18,7 +18,7 @@
     <ClCompile Include="GateServer.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="CSever.cpp">
+    <ClCompile Include="CServer.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="HttpConnection.cpp">
@@ -29,7 +29,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="CSever.h">
+    <ClInclude Include="CServer.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="const.h">

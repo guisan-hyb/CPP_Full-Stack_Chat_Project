@@ -1,12 +1,12 @@
-#include "CSever.h"
+#include "CServer.h"
 #include "HttpConnection.h"
 
-CSever::CSever(net::io_context& ioc, unsigned short& port)
+CServer::CServer(net::io_context& ioc, unsigned short& port)
 	: _ioc(ioc), _acceptor(ioc, tcp::endpoint(tcp::v4(), port)), _socket(ioc){
 
 }
 
-void CSever::Start()
+void CServer::Start()
 {
 	auto self = shared_from_this();
 	_acceptor.async_accept(_socket, [self](beast::error_code ec) {

@@ -71,6 +71,18 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <IncludePath>C:\Users\Mycode\C++_Full-Stack_Chat_Project\build\generated;$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <IncludePath>C:\Users\Mycode\C++_Full-Stack_Chat_Project\build\generated;$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <IncludePath>C:\Users\Mycode\C++_Full-Stack_Chat_Project\build\generated;$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <IncludePath>C:\Users\Mycode\C++_Full-Stack_Chat_Project\build\generated;$(IncludePath)</IncludePath>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
@@ -124,14 +136,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="CSever.cpp" />
+    <ClCompile Include="CServer.cpp" />
     <ClCompile Include="GateServer.cpp" />
     <ClCompile Include="HttpConnection.cpp" />
     <ClCompile Include="LogicSystem.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="const.h" />
-    <ClInclude Include="CSever.h" />
+    <ClInclude Include="CServer.h" />
     <ClInclude Include="HttpConnection.h" />
     <ClInclude Include="LogicSystem.h" />
     <ClInclude Include="Singleton.h" />
