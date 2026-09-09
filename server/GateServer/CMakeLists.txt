@@ -6,6 +6,8 @@ set(GATE_SERVER_SOURCES
     CServer.cpp
     HttpConnection.cpp
     LogicSystem.cpp
+    VerifyGrpcClient.cpp
+    ConfigMgr.cpp
 )
 
 # 2. 生成可执行文件
@@ -23,3 +25,15 @@ target_link_libraries(GateServer PRIVATE
     chat_proto # 自己生成的chat_proto 库 -> message.proto
 )
 
+# ==========================================
+# 自动拷贝配置文件到运行目录
+# ==========================================
+# 1. 定义配置文件的源路径 (config.ini 放在 GateServer 目录下)
+set(CONFIG_FILE ${CMAKE_CURRENT_SOURCE_DIR}/config.ini)
+
+# 2. 添加自定义命令：在编译 GateServer 之后，将 config.ini 拷贝到 .exe 所在目录
+add_custom_command(TARGET GateServer POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+    ${CONFIG_FILE}
+    $<TARGET_FILE_DIR:GateServer>
+)

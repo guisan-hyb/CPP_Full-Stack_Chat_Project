@@ -1,9 +1,12 @@
 ﻿#include "CServer.h"
-#include "message.pb.h"
+#include "ConfigMgr.h"
 
 int main() {
+	ConfigMgr gCfgMgr;
+	std::string gate_port_str = gCfgMgr["GateServer"]["Port"];
+	unsigned short gate_port = std::stoi(gate_port_str);
 	try {
-		unsigned short port = static_cast<unsigned short>(8080);
+		unsigned short port = gate_port;
 		net::io_context ioc{ 1 };
 		net::signal_set signals(ioc, SIGINT, SIGTERM);
 		signals.async_wait([&ioc](boost::system::error_code error, int signal_number) {

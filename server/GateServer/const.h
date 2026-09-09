@@ -11,6 +11,9 @@
 #include <string>
 #include <nlohmann/json.hpp>
 
+#include <filesystem>
+#include <fstream>
+
 namespace beast = boost::beast;
 namespace http = beast::http;
 namespace net = boost::asio;
@@ -24,3 +27,6 @@ enum ErrorCodes {
 	RPC_Failed = 1002,
 
 };
+
+class ConfigMgr;
+extern ConfigMgr gCfgMgr;

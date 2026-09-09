@@ -176,3 +176,86 @@ target_link_libraries(GateServer PRIVATE
 
 
 
+---
+
+## 回顾多层CMake
+
+这是一个非常经典的 **“洋葱式”分层 CMake 结构**。每一层都有明确的“职责边界”，互不越界，又通过 CMake 的**作用域（Scope）**规则紧密配合。
+
+为了帮你彻底理清，我们不只看“它写了什么”，更要看 **“它为什么在这里写，而不是写在上层或下层”**。
+
+我用一个**建筑公司**的比喻来帮你回顾这三层架构：
+
+---
+
+### 第 0 层（最外层）：`CMakePresets.json` —— “公司营业执照与资质证书”
+- **位置**：项目根目录。
+- **职责**：**环境适配**。它不定义任何代码或库，只告诉 CMake“我这台电脑的编译环境长什么样”。
+- **核心动作**：
+  - 指定生成器（`Visual Studio 17 2022`）。
+  - 指定架构（`x64`）。
+  - **最关键**：指定 `vcpkg` 的工具链文件。这相当于告诉 CMake：“所有 `find_package` 都去 C:/vcpkg 里找，别去系统默认路径”。
+- **为什么放最外层**：因为环境是全局的，无论是 Server 还是 Client，都得用同一套 vcpkg。
+
+---
+
+### 第 1 层（根目录）：`CMakeLists.txt` —— “集团总公司”
+- **位置**：项目根目录。
+- **职责**：**全局政策与项目入口**。它不管具体业务，只管“统一思想”和“引入子部门”。
+- **核心动作**：
+  1. `cmake_minimum_required` 和 `project`：确定工程名，开启 C++17 标准。
+  2. `find_package(Protobuf ...)` 和 `find_package(gRPC ...)`：**注意！这里查找了，但并没有立刻用**。它的作用是**探测环境**，把 `Protobuf_PROTOC_EXECUTABLE` 等变量缓存到内存里，方便子目录直接使用。
+  3. `add_subdirectory(server)`：把控制权交给子目录。它完全不关心 Server 里面是生成 proto，还是写业务逻辑。
+- **为什么这样设计**：如果将来你新增一个 `TestServer`，你只需要在根目录加一行 `add_subdirectory(test_server)`，根目录的通用设置（C++标准、vcpkg环境）会自动继承，不需要重复写。
+
+---
+
+### 第 2 层（`server/CMakeLists.txt`）—— “基础设施研发部”
+- **位置**：`server` 目录下。
+- **职责**：**定义公共基础设施（通信协议库）**。它把 `.proto` 文件变成 C++ 代码，并打包成供所有人调用的“库”。
+- **核心动作（这是你最关心的）**：
+  1. **再次 `find_package`**：为了安全（如果根目录没找，这里能兜底），并利用之前缓存的路径。
+  2. **查找工具链**：动态寻找 `protoc` 和 `grpc_cpp_plugin`（你改了动态查找，这里就体现了价值）。
+  3. **定义生成逻辑**：`add_custom_command` 规定怎么把 `.proto` 变成 `.cc/.h`。
+  4. **创建“库目标”**：`add_library(chat_proto STATIC ...)`。它把生成的文件编译成 `chat_proto.lib`。
+  5. **传递依赖**：`target_include_directories(... PUBLIC ${GENERATED_DIR})`。它负责“生”出文件，并承诺“谁用我，我就把 proto 头文件路径送给他”。
+  6. **引入子目录**：`add_subdirectory(GateServer)`。
+- **为什么放这一层**：`chat_proto` 是所有服务器（GateServer、LoginServer）都要用的底层通信协议。放在这里，所有子服务器都能共享这一个库，避免重复编译 `.proto`，极大提速。
+
+---
+
+### 第 3 层（`server/GateServer/CMakeLists.txt`）—— “具体业务项目部”
+- **位置**：`server/GateServer` 目录下。
+- **职责**：**实现具体业务功能**。只关心“我这个网关服务器需要哪些 .cpp 文件，我要链接哪些库”。
+- **核心动作**：
+  1. `set(GATE_SERVER_SOURCES ...)`：列出手写的业务逻辑代码（GateServer.cpp、LogicSystem.cpp 等）。
+  2. `add_executable(GateServer ...)`：声明要生成一个可执行文件。
+  3. **手动加包含路径（你刚做的）**：`target_include_directories(GateServer PRIVATE ${CMAKE_BINARY_DIR}/generated)`。虽然理论上第 2 层的 `PUBLIC` 能传递，但在 VS 生成器中为了绝对保险，你在这一层**显式声明自己的包含路径**（这是一种“防御性编程”）。
+  4. `target_link_libraries`：**这里才是真正“组装”的地方**。把 `chat_proto`、`Boost`、`nlohmann_json` 全部链接进来。
+- **为什么放这一层**：GateServer 只负责处理 HTTP/WebSocket 业务逻辑，它不需要知道 `protoc` 怎么调用，也不需要知道 `vcpkg` 怎么配。它只需要拿到 `chat_proto.lib` 和头文件，然后专注写 `GetVerifyCode` 的实现就行了。
+
+---
+
+### 跨层级的“变量传递”法则（帮你理解作用域）
+
+你可能注意到有些变量写了 `PARENT_SCOPE`，有些没有。这里有一个铁律：
+
+1. **向下传递（父→子）**：**默认自动**。根目录定义的 `CMAKE_CXX_STANDARD`，`server/CMakeLists.txt` 和 `GateServer/CMakeLists.txt` 都能直接读到。根目录 `find_package` 找到的变量，子目录直接就能用。
+2. **向上传递（子→父）**：**必须手动**。如果 `server/CMakeLists.txt` 定义了个变量想让根目录用，必须用 `set(... PARENT_SCOPE)`（你原来代码里写过，后来优化去掉了，因为不需要了）。
+3. **同级传递（兄→弟）**：**通过 Target（目标）**。`server` 定义了 `chat_proto` 目标，`GateServer` 通过 `target_link_libraries` 来“认大哥”，从而自动继承大哥的 PUBLIC 属性和头文件路径。
+
+---
+
+### 总结记忆卡片（便于复习）
+
+| 层级        | 文件位置             | 角色定位     | 核心命令                                  | 这一层关心什么？                                 |
+| :---------- | :------------------- | :----------- | :---------------------------------------- | :----------------------------------------------- |
+| **第 0 层** | 根目录               | **环境配置** | `CMakePresets.json`                       | 编译器在哪？vcpkg 在哪？                         |
+| **第 1 层** | 根目录               | **总指挥部** | `project`, `add_subdirectory`             | 项目叫什么？用 C++ 几？有几个大模块？            |
+| **第 2 层** | `/server`            | **部件工厂** | `add_custom_command`, `add_library`       | `.proto` 怎么变成 C++？`chat_proto` 怎么造出来？ |
+| **第 3 层** | `/server/GateServer` | **组装车间** | `add_executable`, `target_link_libraries` | 业务代码在哪？需要链接哪些库才能跑起来？         |
+
+以后你看到任何大型 CMake 工程，试着用这 4 层去套。**绝大多数项目都不超过 4 层**，超过 4 层就是过度设计了。你现在已经能清晰地分层看问题了，这比背 100 条 API 指令都管用！👍
+
+
+
