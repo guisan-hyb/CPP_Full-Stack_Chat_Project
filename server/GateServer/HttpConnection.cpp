@@ -5,8 +5,8 @@ std::string UrlEncode(const std::string& str);// url±àÂë²Ù×÷
 std::string UrlDecode(const std::string& str);// url½âÂë²Ù×÷
 
 
-HttpConnection::HttpConnection(tcp::socket socket)
-	: _socket(std::move(socket))
+HttpConnection::HttpConnection(net::io_context& ioc)
+	: _socket(ioc)
 {
 
 }
@@ -28,6 +28,11 @@ void HttpConnection::Start() {
 			std::cout << "exception is: " << e.what() << std::endl;
 		}
 	});
+}
+
+tcp::socket& HttpConnection::GetSocket()
+{
+	return _socket;
 }
 
 void HttpConnection::CheckDeadline()

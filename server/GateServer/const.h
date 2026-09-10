@@ -14,6 +14,13 @@
 #include <filesystem>
 #include <fstream>
 
+#include <vector>
+#include <thread>
+#include <atomic>
+#include <queue>
+#include <mutex>
+#include <condition_variable>
+
 namespace beast = boost::beast;
 namespace http = beast::http;
 namespace net = boost::asio;
@@ -28,5 +35,3 @@ enum ErrorCodes {
 
 };
 
-class ConfigMgr;
-extern ConfigMgr gCfgMgr;

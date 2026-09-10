@@ -31,21 +31,6 @@ struct SectionInfo {
 
 class ConfigMgr {
 public:
-	ConfigMgr();
-
-	ConfigMgr(const ConfigMgr& src) {
-		_config_map = src._config_map;
-	}
-
-	ConfigMgr& operator=(const ConfigMgr& src) {
-		if (this == &src) {
-			return *this;
-		}
-
-		_config_map = src._config_map;
-		return *this;
-	}
-
 	~ConfigMgr() {
 		_config_map.clear();
 	}
@@ -57,6 +42,16 @@ public:
 
 		return _config_map[section];
 	}
+
+	static ConfigMgr& GetInst() {
+		static ConfigMgr cfg_mgr;
+		return cfg_mgr;
+	}
+
+private:
+	ConfigMgr();
+	ConfigMgr(const ConfigMgr& src) = delete;
+	ConfigMgr& operator=(const ConfigMgr& src) = delete;
 
 private:
 	std::unordered_map<std::string, SectionInfo> _config_map;// 每个section的名称 - 该section下的所有键值对

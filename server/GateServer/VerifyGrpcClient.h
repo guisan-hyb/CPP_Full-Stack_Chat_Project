@@ -13,6 +13,28 @@ using message::GetVerifyReq;
 using message::GetVerifyRsp;
 using message::VerifyService;
 
+
+class RPC_connect_pool {
+public:
+	RPC_connect_pool(std::size_t pool_size, std::string host, std::string port);
+	~RPC_connect_pool();
+
+	void Close();
+	std::unique_ptr<VerifyService::Stub> GetConnection();
+	void ReturnConnection(std::unique_ptr<VerifyService::Stub> context);
+
+private:
+	std::atomic<bool> _b_stop;// 标记是否回收
+	std::size_t _pool_size;
+	std::string _host;
+	std::string _port;
+
+	std::queue<std::unique_ptr<VerifyService::Stub>> _connections;
+	std::mutex _mtx;
+	std::condition_variable _cond;
+};
+
+
 class VerifyGrpcClient : public Singleton<VerifyGrpcClient>
 {
 	friend class Singleton<VerifyGrpcClient>;
@@ -24,6 +46,6 @@ private:
 	VerifyGrpcClient();
 
 private:
-	std::unique_ptr<VerifyService::Stub> _stub;// 信使
+	std::unique_ptr<RPC_connect_pool> _pool;
 };
 

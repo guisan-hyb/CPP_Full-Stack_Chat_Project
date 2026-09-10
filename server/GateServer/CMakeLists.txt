@@ -8,6 +8,7 @@ set(GATE_SERVER_SOURCES
     LogicSystem.cpp
     VerifyGrpcClient.cpp
     ConfigMgr.cpp
+    AsioIOServicePool.cpp
 )
 
 # 2. 生成可执行文件

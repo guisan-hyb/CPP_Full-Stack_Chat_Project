@@ -6,8 +6,9 @@ class HttpConnection : public std::enable_shared_from_this<HttpConnection>
 {
 	friend class LogicSystem;// 将单例逻辑类设置为友元便于处理，也可以再封装一个接口，都可以
 public:
-	HttpConnection(tcp::socket socket);
+	HttpConnection(net::io_context& ioc);
 	void Start();
+	tcp::socket& GetSocket();
 
 private:
 	void CheckDeadline(); // 超时检测
