@@ -110,3 +110,7 @@ _object_script.*
 .DS_Store
 Thumbs.db
 Desktop.ini
+
+# Node.js 相关
+node_modules/
+npm-debug.log

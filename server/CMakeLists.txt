@@ -75,3 +75,4 @@ target_link_libraries(chat_proto PUBLIC
 # 5. 子目录
 # ------------------------------------------------------------
 add_subdirectory(GateServer)
+# 不用加VerifyServer，因为它是node.js

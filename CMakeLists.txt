@@ -35,4 +35,4 @@ find_package(Boost REQUIRED)
 # 进入子目录...
 add_subdirectory(server)
 
-# Qt 使用cmake构建
+# Qt 使用qmake构建
