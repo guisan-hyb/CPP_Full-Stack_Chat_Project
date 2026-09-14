@@ -5,6 +5,7 @@ find_package(Protobuf CONFIG REQUIRED)
 find_package(gRPC CONFIG REQUIRED)
 find_package(Boost REQUIRED)
 find_package(nlohmann_json CONFIG REQUIRED)
+find_package(redis++ CONFIG REQUIRED)# 寻找 Redis 客户端库
 
 # ------------------------------------------------------------ 
 # 1. protoc 路径（用 generator expression 更可靠）

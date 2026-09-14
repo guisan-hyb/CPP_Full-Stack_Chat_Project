@@ -1,6 +1,7 @@
 const fs = require('fs');
+const path = require('path');
 
-let config = JSON.parse(fs.readFileSync('config.json', 'utf8'));
+let config = JSON.parse(fs.readFileSync(path.join(__dirname, 'config.json'), 'utf8'));
 let email_user = config.email.user;
 let email_pass = config.email.pass;
 let mysql_host = config.mysql.host;

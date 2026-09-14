@@ -9,6 +9,7 @@ set(GATE_SERVER_SOURCES
     VerifyGrpcClient.cpp
     ConfigMgr.cpp
     AsioIOServicePool.cpp
+    RedisMgr.cpp
 )
 
 # 2. 生成可执行文件
@@ -24,6 +25,7 @@ target_link_libraries(GateServer PRIVATE
     Boost::boost
     nlohmann_json::nlohmann_json
     chat_proto # 自己生成的chat_proto 库 -> message.proto
+    redis++::redis++   # <-- 加上 Redis
 )
 
 # ==========================================

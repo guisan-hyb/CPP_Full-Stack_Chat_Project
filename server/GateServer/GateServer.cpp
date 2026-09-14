@@ -1,11 +1,14 @@
 ﻿#include "CServer.h"
 #include "ConfigMgr.h"
+#include "RedisMgr.h"
 
 int main() {
 	auto& gCfgMgr = ConfigMgr::GetInst();
 	std::string gate_port_str = gCfgMgr["GateServer"]["Port"];
 	unsigned short gate_port = std::stoi(gate_port_str);
 	try {
+		RedisMgr::GetInst();
+
 		unsigned short port = gate_port;
 		net::io_context ioc{ 1 };
 		net::signal_set signals(ioc, SIGINT, SIGTERM);
@@ -17,6 +20,8 @@ int main() {
 		std::make_shared<CServer>(ioc, port)->Start();
 		std::cout << "Gate Server listen on port: " << port << std::endl;
 		ioc.run();
+
+		RedisMgr::GetInst()->Close();
 	}
 	catch (std::exception& e) {
 		std::cerr << "Error: " << e.what() << std::endl;
