@@ -8,23 +8,23 @@ RedisMgr::RedisMgr() {
 	auto pwd = gCfgMgr["Redis"]["Passwd"];
 
 	try {
-		// 1. ÅäÖÃÁ¬½ÓÑ¡Ïî
+		// 1. é…ç½®è¿æ¥é€‰é¡¹
 		sw::redis::ConnectionOptions conn_opts;
 		conn_opts.host = host;
 		conn_opts.port = std::stoi(port);
 		if (!pwd.empty()) {
 			conn_opts.password = pwd;
 		}
-		conn_opts.connect_timeout = std::chrono::milliseconds(100);// Á¬½Ó³¬Ê±
-		conn_opts.socket_timeout = std::chrono::milliseconds(100);// ¶ÁĞ´³¬Ê±
+		conn_opts.connect_timeout = std::chrono::milliseconds(100);// è¿æ¥è¶…æ—¶
+		conn_opts.socket_timeout = std::chrono::milliseconds(100);// è¯»å†™è¶…æ—¶
 
-		// 2. ÅäÖÃÁ¬½Ó³ØÑ¡Ïî
+		// 2. é…ç½®è¿æ¥æ± é€‰é¡¹
 		sw::redis::ConnectionPoolOptions pool_opts;
-		pool_opts.size = 5;// Á¬½Ó³ØµÄ´óĞ¡
-		pool_opts.wait_timeout = std::chrono::milliseconds(100);// »ñÈ¡Á¬½ÓµÈ´ıÊ±¼ä
-		pool_opts.connection_lifetime = std::chrono::minutes(5);// Á¬½Ó×î´ó´æ»îÊ±¼ä(×Ô¶¯ÖØÁ¬)
+		pool_opts.size = 5;// è¿æ¥æ± çš„å¤§å°
+		pool_opts.wait_timeout = std::chrono::milliseconds(100);// è·å–è¿æ¥ç­‰å¾…æ—¶é—´
+		pool_opts.connection_lifetime = std::chrono::minutes(5);// è¿æ¥æœ€å¤§å­˜æ´»æ—¶é—´(è‡ªåŠ¨é‡è¿)
 
-		// 3. ´´½¨ Redis ¿Í»§¶Ë£¬×Ô¶¯ÆôÓÃÁ¬½Ó³Ø
+		// 3. åˆ›å»º Redis å®¢æˆ·ç«¯ï¼Œè‡ªåŠ¨å¯ç”¨è¿æ¥æ± 
 		_redis = std::make_unique<sw::redis::Redis>(conn_opts, pool_opts);
 		std::cout << "Redis connect success!" << std::endl;
 	}
@@ -35,20 +35,24 @@ RedisMgr::RedisMgr() {
 
 RedisMgr::~RedisMgr()
 {
-	// unique_ptr »á×Ô¶¯ÊÍ·ÅÁ¬½Ó³Ø£¬ÎŞĞèÊÖ¶¯ÇåÀí
+	// unique_ptr ä¼šè‡ªåŠ¨é‡Šæ”¾è¿æ¥æ± ï¼Œæ— éœ€æ‰‹åŠ¨æ¸…ç†
 }
 
 
 // ==========================================
-// String ÀàĞÍ²Ù×÷ (×î»ù´¡µÄ KV)
+// String ç±»å‹æ“ä½œ (æœ€åŸºç¡€çš„ KV)
 // ==========================================
 
 
 bool RedisMgr::Get(const std::string& key, std::string& value)
 {
 	try {
-		// redis++ µÄ get ·µ»ØµÄÊÇ OptionalString (ÀàËÆ std::optional)
-		// ÒòÎª key ¿ÉÄÜ²»´æÔÚ¡£ÓÃ if(val) ×Ô¶¯ÅĞ¶ÏÊÇ·ñ´æÔÚ
+		if (!_redis) {
+			std::cerr << "Redis client is not initialized" << std::endl;
+			return false;
+		}
+		// redis++ çš„ get è¿”å›çš„æ˜¯ OptionalString (ç±»ä¼¼ std::optional)
+		// å› ä¸º key å¯èƒ½ä¸å­˜åœ¨ã€‚ç”¨ if(val) è‡ªåŠ¨åˆ¤æ–­æ˜¯å¦å­˜åœ¨
 		auto val = _redis->get(key);
 		if (val) {
 			value = *val;
@@ -65,7 +69,7 @@ bool RedisMgr::Get(const std::string& key, std::string& value)
 bool RedisMgr::Set(const std::string& key, const std::string& value)
 {
 	try {
-		// set ·µ»Ø void£¬Èç¹ûÃ»ÓĞÅ×Òì³£¾ÍÊÇ³É¹¦
+		// set è¿”å› voidï¼Œå¦‚æœæ²¡æœ‰æŠ›å¼‚å¸¸å°±æ˜¯æˆåŠŸ
 		_redis->set(key, value);
 		return true;
 	}
@@ -78,7 +82,7 @@ bool RedisMgr::Set(const std::string& key, const std::string& value)
 bool RedisMgr::Del(const std::string& key)
 {
 	try {
-		// del ·µ»Ø±»É¾³ıµÄ key µÄÊıÁ¿
+		// del è¿”å›è¢«åˆ é™¤çš„ key çš„æ•°é‡
 		_redis->del(key);
 		return true;
 	}
@@ -91,7 +95,7 @@ bool RedisMgr::Del(const std::string& key)
 bool RedisMgr::ExistsKey(const std::string& key)
 {
 	try {
-		// exists ·µ»Ø long long£¬±íÊ¾´æÔÚµÄ key ÊıÁ¿ (>0 ¼´´æÔÚ)
+		// exists è¿”å› long longï¼Œè¡¨ç¤ºå­˜åœ¨çš„ key æ•°é‡ (>0 å³å­˜åœ¨)
 		return _redis->exists(key) > 0;
 	}
 	catch (const std::exception& e) {
@@ -102,7 +106,7 @@ bool RedisMgr::ExistsKey(const std::string& key)
 
 
 // ==========================================
-// List ÀàĞÍ²Ù×÷ (³£ÓÃÓÚÏûÏ¢¶ÓÁĞ)
+// List ç±»å‹æ“ä½œ (å¸¸ç”¨äºæ¶ˆæ¯é˜Ÿåˆ—)
 // ==========================================
 
 bool RedisMgr::LPush(const std::string& key, const std::string& value)
@@ -160,7 +164,7 @@ bool RedisMgr::RPop(const std::string& key, std::string& value)
 
 
 // ==========================================
-// Hash ÀàĞÍ²Ù×÷ (³£ÓÃÓÚ´æ´¢¶ÔÏó)
+// Hash ç±»å‹æ“ä½œ (å¸¸ç”¨äºå­˜å‚¨å¯¹è±¡)
 // ==========================================
 
 bool RedisMgr::HSet(const std::string& key, const std::string& hkey, const std::string& value)
@@ -174,12 +178,12 @@ bool RedisMgr::HSet(const std::string& key, const std::string& hkey, const std::
 	}
 }
 
-// Ö§³Ö char* ºÍ³¤¶È£¬ÓÃÓÚ´æ¶ş½øÖÆÊı¾İ
+// æ”¯æŒ char* å’Œé•¿åº¦ï¼Œç”¨äºå­˜äºŒè¿›åˆ¶æ•°æ®
 bool RedisMgr::HSet(const char* key, const char* hkey, const char* hvalue, size_t hvaluelen)
 {
 	try {
-		// redis++ Ô­ÉúÖ§³Ö string_view£¬¿ÉÒÔ°²È«´¦Àí¶ş½øÖÆÊı¾İ
-		// ÕâÀïÓÃstring¼´¿É£¬ÓÃstring_view»á³ö´í
+		// redis++ åŸç”Ÿæ”¯æŒ string_viewï¼Œå¯ä»¥å®‰å…¨å¤„ç†äºŒè¿›åˆ¶æ•°æ®
+		// è¿™é‡Œç”¨stringå³å¯ï¼Œç”¨string_viewä¼šå‡ºé”™
 		_redis->hset(std::string(key), std::string(hkey),
 			std::string(hvalue, hvaluelen));
 		return true;

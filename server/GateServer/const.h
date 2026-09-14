@@ -34,8 +34,17 @@ using json = nlohmann::json;
 
 enum ErrorCodes {
 	Success = 0,
-	Error_Json = 1001,
-	RPC_Failed = 1002,
-
+	Error_Json = 1001, // json解析错误
+	RPC_Failed = 1002, // RPC请求错误
+	Verify_Expired = 1003, // 验证码过期
+	Verify_Code_Error = 1004, // 验证码错误
+	User_Exist = 1005, // 用户已经存在
+	Passwd_Error = 1006, // 密码错误
+	Email_Not_Match = 1007, // 邮箱不匹配
+	Passwd_Up_Failed = 1008, // 更新密码失败
+	Passwd_Invalid = 1009, // 密码无效
 };
+
+
+#define CODEPREFIX "code_"
 
