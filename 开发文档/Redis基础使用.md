@@ -345,6 +345,199 @@ sudo ufw allow 6379
 
 
 
+---
+
+---
+
+
+
+### 客户端配置
+
+这取决于你**在哪一端**使用 Redis。
+
+在你的全栈聊天项目中，Node.js 端（验证服务）和 C++ 端（网关/逻辑服务）对 Redis 的使用需求不同，处理方式也完全不同：
+
+### 1. Node.js 端（VerifyServer）：不需要 vcpkg 和 CMake
+Node.js 有自己极其完善的包管理生态。连接 Redis 只需要用 npm 安装官方库即可，完全不涉及 C++ 的构建工具。
+
+**操作方法：**
+在你的 `server/VerifyServer` 目录下执行：
+```bash
+npm install redis
+```
+然后在代码中使用：
+```javascript
+const redis = require('redis');
+
+async function connectRedis() {
+    const client = redis.createClient({ url: 'redis://127.0.0.1:6379' });
+    client.on('error', (err) => console.log('Redis Client Error', err));
+    await client.connect();
+    
+    // 存入验证码，设置5分钟过期
+    await client.set('code:user123', '9527', { EX: 300 });
+    
+    // 读取
+    const code = await client.get('code:user123');
+    console.log('获取到的验证码:', code);
+}
+connectRedis();
+```
+
+### 2. C++ 端（GateServer / 未来的 LogicServer）：需要 vcpkg 和 CMake
+如果你的 C++ 服务器也需要读写 Redis（比如 GateServer 需要去 Redis 里查验证码是否正确，或者缓存用户 Token），你就必须在 C++ 中引入 Redis 的 C++ 客户端库。这时候就又到了 vcpkg 和 CMake 表演的时候了。
+
+**操作方法：**
+
+**第一步：用 vcpkg 安装 `redis-plus-plus`**
+这是目前 C++ 界最主流、最好用的 Redis 客户端库（基于 hiredis 封装）。
+打开终端，进入 vcpkg 目录：
+```bash
+./vcpkg install redis-plus-plus:x64-windows
+```
+*(vcpkg 会自动帮你把底层的依赖 `hiredis` 也装好)*
+
+**第二步：在 CMake 中链接库**
+打开你的 `server/CMakeLists.txt`，加上 `find_package`：
+```cmake
+# 寻找 Redis 客户端库
+find_package(redis++ CONFIG REQUIRED)
+```
+
+然后在你的 `server/GateServer/CMakeLists.txt` 中链接它：
+```cmake
+target_link_libraries(GateServer PRIVATE
+    gRPC::grpc++
+    protobuf::libprotobuf
+    Boost::boost
+    chat_proto
+    redis++::redis++   # <-- 加上 Redis
+)
+```
+
+**第三步：C++ 代码中使用**
+```cpp
+#include <sw/redis++/redis++.h>
+#include <iostream>
+
+int main() {
+    try {
+        // 连接 Redis
+        sw::redis::Redis redis("tcp://127.0.0.1:6379");
+        
+        // 写入
+        redis.set("test_key", "Hello from C++");
+        
+        // 读取
+        auto val = redis.get("test_key");
+        if (val) {
+            std::cout << "从 Redis 读到: " << *val << std::endl;
+        }
+    } catch (const std::exception& e) {
+        std::cerr << "Redis 错误: " << e.what() << std::endl;
+    }
+    return 0;
+}
+```
+
+### 3. Redis 服务器环境本身：不需要 vcpkg 和 CMake
+你需要明确区分**“代码里连接 Redis 的库”**和**“运行在系统上的 Redis 数据库服务”**。
+* vcpkg 和 CMake 管理的是前者（客户端库）。
+* 对于后者（数据库服务），在 Windows 开发环境下，通常有两种做法：
+  1. **推荐**：在 Windows 上装一个 Docker，跑一个 `redis` 容器。
+  2. **传统**：去 GitHub 下载微软维护的 Windows 版 Redis 压缩包（`tporadowski/redis`），解压后直接双击 `redis-server.exe` 运行即可。
+
+### 总结
+* **Node.js 端**：`npm install redis` 搞定。
+* **C++ 端**：`vcpkg install redis-plus-plus` + `CMake find_package` 搞定。
+* **Redis 服务**：双击运行 `redis-server.exe` 或用 Docker 跑一个即可。
+
+
+
+
+
+---
+
+---
+
+## Docker 部署Redis
+
+太棒了！既然你已经成功用 Docker 部署了 MySQL，那么部署 Redis 简直就是小菜一碟了。两者的操作流程几乎是一模一样的。
+
+为了让你以后的管理更加规范，我们按照标准流程来操作：
+
+### 第一步：关闭并卸载之前裸机安装的 Redis（很重要！）
+
+因为你之前用 `apt install redis-server` 装过 Redis，它占用了虚拟机的 6379 端口。如果不关掉它，Docker 里的 Redis 就会因为端口被占用而启动失败。
+
+在虚拟机终端执行：
+```bash
+# 1. 停止正在运行的 redis 服务
+sudo systemctl stop redis-server
+
+# 2. 禁止它开机自启（彻底摆脱裸机版）
+sudo systemctl disable redis-server
+```
+
+### 第二步：使用 Docker 一键部署 Redis
+
+复制并执行以下命令。你会发现这条命令和部署 MySQL 时非常相似：
+
+```bash
+docker run -d \
+  --name chat-redis \
+  -p 6379:6379 \
+  -v /mydata/redis/data:/data \
+  redis:7.0 \
+  redis-server --protected-mode no --appendonly yes
+```
+
+**参数解释（对比 MySQL 加深理解）：**
+* `-d`：后台运行。
+* `--name chat-redis`：给容器起名叫 `chat-redis`。
+* `-p 6379:6379`：端口映射，把虚拟机的 6379 转发给容器。
+* `-v /mydata/redis/data:/data`：**数据卷挂载**。把 Redis 的数据持久化到虚拟机的 `/mydata/redis/data` 目录，防止容器删除后验证码数据丢失。
+* `redis:7.0`：使用官方 7.0 版本的镜像（推荐指定具体版本，不用 latest）。
+* `redis-server --protected-mode no --appendonly yes`：这是传给容器内部 Redis 的启动参数。
+  * `--protected-mode no`：**关键！** 关闭保护模式，允许你的 Windows 宿主机远程连接它（这就免去了你之前还要去改 `redis.conf` 文件的麻烦）。
+  * `--appendonly yes`：开启 AOF 持久化，防止重启断电丢数据。
+
+### 第三步：验证是否启动成功
+
+执行命令查看运行状态：
+```bash
+docker ps
+```
+如果看到 `chat-redis` 的状态是 `Up`，说明部署成功！
+
+你可以进入容器内部测试一下（类似之前教的 `redis-cli`）：
+```bash
+# 进入容器并执行 redis-cli
+docker exec -it chat-redis redis-cli
+
+# 执行 ping
+127.0.0.1:6379> ping
+# 返回 PONG 说明完美！输入 exit 退出
+```
+
+### 第四步：设置开机自启（与 MySQL 保持一致）
+
+为了让虚拟机重启后 Redis 也自动跟着起来，执行：
+```bash
+docker update --restart=always chat-redis
+```
+
+---
+
+### ⚠️ 注意：你需要更新代码里的连接配置吗？
+
+之前你的 C++ 和 Node.js 代码里，连接的 Redis 密码可能是空的。现在用 Docker 跑起来后，**默认依然是没有密码的**（因为我们没设置密码参数）。
+所以，你之前的代码**完全不需要修改**，直接运行就能连上这个 Docker 里的 Redis。
+
+*(注：如果是真实的公网生产环境，必须给 Redis 加密码，命令里加上 `--requirepass 你的密码` 即可。开发环境为了方便，暂不设密码没问题。)*
+
+现在，你的 Linux 虚拟机里已经成功跑起了两个 Docker 容器：MySQL 和 Redis。你的后端基础设施越来越完善了！
+
 
 
 ---

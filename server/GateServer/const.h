@@ -25,6 +25,8 @@
 #include <sw/redis++/redis++.h>
 #include <chrono>
 
+#include <mysqlx/xdevapi.h>
+
 namespace beast = boost::beast;
 namespace http = beast::http;
 namespace net = boost::asio;

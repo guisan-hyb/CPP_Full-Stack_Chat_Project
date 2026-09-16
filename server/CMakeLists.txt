@@ -3,9 +3,10 @@ cmake_minimum_required(VERSION 3.20)  # 提到 3.20 以更好支持 generator ex
 
 find_package(Protobuf CONFIG REQUIRED)
 find_package(gRPC CONFIG REQUIRED)
-find_package(Boost REQUIRED)
+find_package(Boost REQUIRED COMPONENTS asio beast)
 find_package(nlohmann_json CONFIG REQUIRED)
 find_package(redis++ CONFIG REQUIRED)# 寻找 Redis 客户端库
+find_package(unofficial-mysql-connector-cpp CONFIG REQUIRED) # mysql
 
 # ------------------------------------------------------------ 
 # 1. protoc 路径（用 generator expression 更可靠）

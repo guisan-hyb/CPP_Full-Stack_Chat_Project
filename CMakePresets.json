@@ -10,9 +10,7 @@
             },
             "binaryDir": "${sourceDir}/build",
             "cacheVariables": {
-                "CMAKE_TOOLCHAIN_FILE": "C:/vcpkg/scripts/buildsystems/vcpkg.cmake",
-                "BOOST_ROOT": "C:/boost_1_91_0",
-                "BOOST_NO_WARN_PATHS_ON_VS": "ON"
+                "CMAKE_TOOLCHAIN_FILE": "C:/vcpkg/scripts/buildsystems/vcpkg.cmake"
             }
         }
     ]

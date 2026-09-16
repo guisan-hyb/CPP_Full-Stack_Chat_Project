@@ -10,6 +10,8 @@ set(GATE_SERVER_SOURCES
     ConfigMgr.cpp
     AsioIOServicePool.cpp
     RedisMgr.cpp
+    MysqlDao.cpp
+    MysqlMgr.cpp
 )
 
 # 2. 生成可执行文件
@@ -22,10 +24,12 @@ target_include_directories(GateServer PRIVATE ${CMAKE_BINARY_DIR}/generated)
 target_link_libraries(GateServer PRIVATE
     gRPC::grpc++
     protobuf::libprotobuf
+    Boost::asio
     Boost::boost
     nlohmann_json::nlohmann_json
     chat_proto # 自己生成的chat_proto 库 -> message.proto
     redis++::redis++   # <-- 加上 Redis
+    unofficial::mysql-connector-cpp::connector
 )
 
 # ==========================================

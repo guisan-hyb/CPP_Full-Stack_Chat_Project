@@ -2,6 +2,7 @@
 #include "HttpConnection.h"
 #include "VerifyGrpcClient.h"
 #include "RedisMgr.h"
+#include "MysqlMgr.h"
 
 LogicSystem::LogicSystem() {
 	RegGet("/get_test", [](std::shared_ptr<HttpConnection> connection) {
@@ -82,11 +83,11 @@ LogicSystem::LogicSystem() {
 			return true;
 		}
 
-		// 先查找redis中email对应的验证码是否合理
+		// 先查找redis中email对应的验证码
 		std::string verify_code;
 		std::string email_key = std::string(CODEPREFIX) + email;
 		bool b_get_verify = RedisMgr::GetInst()->Get(email_key, verify_code);
-		if (!b_get_verify) {
+		if (!b_get_verify) { // 验证码是否过期
 			std::cout << "get verify code expired" << std::endl;
 			root["error"] = ErrorCodes::Verify_Expired;
 			std::string jsonstr = root.dump();
@@ -94,7 +95,7 @@ LogicSystem::LogicSystem() {
 			return true;
 		}
 
-		if (verify_code != src_root.value("verifycode", std::string(""))) {
+		if (verify_code != src_root.value("verifycode", std::string(""))) { // 验证码是否合理
 			std::cout << "verify code error" << std::endl;
 			root["error"] = ErrorCodes::Verify_Code_Error;
 			std::string jsonstr = root.dump();
@@ -112,6 +113,17 @@ LogicSystem::LogicSystem() {
 			beast::ostream(connection->_response.body()) << jsonstr;
 			return true;
 		}*/
+
+		// 查找数据库判断用户是否存在
+		int uid = MysqlMgr::GetInst()->RegUser(name, email, pwd);
+		if (uid == 0 || uid == -1) {
+			std::cout << "user or email exist" << std::endl;
+			root["error"] = ErrorCodes::User_Exist;
+			std::string jsonstr = root.dump();
+			beast::ostream(connection->_response.body()) << jsonstr;
+			return true;
+		}
+
 
 		root["error"] = 0;
 		root["email"] = src_root["email"];
