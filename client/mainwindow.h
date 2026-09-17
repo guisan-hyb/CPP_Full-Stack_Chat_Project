@@ -36,5 +36,6 @@ private:
 
 public slots:
     void SlotSwitchReg();
+    void SlotSwitchLogin();
 };
 #endif // MAINWINDOW_H
