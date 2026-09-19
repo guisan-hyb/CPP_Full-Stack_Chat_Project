@@ -314,3 +314,10 @@ void RegisterDialog::on_return_btn_clicked()
     emit sigSwitchLogin();
 }
 
+
+void RegisterDialog::on_cancel_btn_clicked() // 点击取消回到登录界面
+{
+    _countdown_timer->stop();
+    emit sigSwitchLogin();
+}
+

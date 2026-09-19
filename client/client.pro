@@ -14,6 +14,7 @@ SOURCES += \
     main.cpp \
     mainwindow.cpp \
     registerdialog.cpp \
+    resetdialog.cpp \
     timerbtn.cpp
 
 HEADERS += \
@@ -23,13 +24,15 @@ HEADERS += \
     logindialog.h \
     mainwindow.h \
     registerdialog.h \
+    resetdialog.h \
     singleton.h \
     timerbtn.h
 
 FORMS += \
     logindialog.ui \
     mainwindow.ui \
-    registerdialog.ui
+    registerdialog.ui \
+    resetdialog.ui
 
 RC_ICONS = icon.ico # icon
 DESTDIR = ./bin # 指定编译后生成的可执行文件（例如 .exe 文件）的输出目录

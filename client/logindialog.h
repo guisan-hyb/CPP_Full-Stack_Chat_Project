@@ -19,7 +19,11 @@ private:
     Ui::LoginDialog *ui;
 
 signals:
-    void switchRegister();//登陆界面切换到注册界面
+    void sig_switchRegister();//登陆界面切换到注册界面
+    void sig_switch_Reset();//点击重置密码切换到重置界面
+
+private slots:
+    void slot_forget_pwd();//重置密码
 };
 
 #endif // LOGINDIALOG_H

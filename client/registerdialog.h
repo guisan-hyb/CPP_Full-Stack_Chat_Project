@@ -24,6 +24,8 @@ private slots:
 
     void on_return_btn_clicked();// ui界面 转到槽 切换回登陆界面
 
+    void on_cancel_btn_clicked();// ui界面 转到槽 点击取消回到登陆界面
+
 private:
     void showTip(QString str, bool b_ok);// 展示提示
     void initHttpHandlers();// 注册一些回调函数

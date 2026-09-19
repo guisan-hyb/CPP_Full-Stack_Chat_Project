@@ -55,3 +55,63 @@ int MysqlDao::RegUser(const std::string& name, const std::string& email, const s
 	}
 }
 
+bool MysqlDao::CheckEmail(const std::string& name, const std::string& email) {
+	try {
+		// 获取Session
+		mysqlx::Session sess = _pool->getConnection();
+
+		// 执行查询，绑定参数
+		mysqlx::SqlResult res = sess.sql("SELECT email FROM user WHERE name = ?")
+								.bind(name)
+								.execute();
+		
+		// 获取第一行 (因为用户名通常是唯一的，最多只有一条结果)
+		mysqlx::Row row = res.fetchOne();
+
+		if (row) { // 如果查到了数据
+			// 安全地获取字符串，注意处理可能为 NULL 的情况
+			std::string db_email = row[0].isNull() ? "" : row[0].get<std::string>();
+			std::cout << "Check Email: " << db_email << std::endl;
+
+			// 比对邮箱是否一致
+			return email == db_email;
+		}
+
+		// 如果没查到该用户，直接返回 false
+		return false;
+	}
+	catch (const mysqlx::Error& e) {
+		std::cerr << "MySQL Error: " << e.what() << std::endl;
+		return false;
+	}
+	catch (const std::exception& e) {
+		std::cerr << "Standard Error: " << e.what() << std::endl;
+		return false;
+	}
+}
+
+bool MysqlDao::UpdatePwd(const std::string& name, const std::string& newpwd) {
+	try {
+		// 获取 Session
+		mysqlx::Session sess = _pool->getConnection();
+
+		// 执行更新操作，链式绑定参数 (按 SQL 中 ? 的顺序)
+		mysqlx::SqlResult res = sess.sql("UPDATE user SET pwd = ? WHERE name = ?")
+								.bind(newpwd)
+								.bind(name)
+								.execute();
+
+		// 获取受影响的行数
+		int updateCount = res.getAffectedItemsCount();
+		std::cout << "Updated rows: " << updateCount << std::endl;
+
+		return true;
+	}
+	catch (const mysqlx::Error& e) {
+		std::cerr << "MySQL Error: " << e.what() << std::endl;
+	}
+	catch (const std::exception& e) {
+		std::cerr << "Standard Error: " << e.what() << std::endl;
+	}
+}
+

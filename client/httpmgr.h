@@ -31,6 +31,7 @@ private slots:
 signals:
     void sig_http_finish(ReqId id, QString res, ErrorCodes err, Modules mod);// 当一个http发送完毕后，会发送信号通知其他模块
     void sig_reg_mod_finish(ReqId id,QString res,ErrorCodes err);// 注册模块http响应结束
+    void sig_reset_mod_finish(ReqId id,QString res,ErrorCodes err);// 通知重置密码模块
 };
 
 #endif // HTTPMGR_H
