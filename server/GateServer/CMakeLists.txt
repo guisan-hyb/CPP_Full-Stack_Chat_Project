@@ -12,6 +12,7 @@ set(GATE_SERVER_SOURCES
     RedisMgr.cpp
     MysqlDao.cpp
     MysqlMgr.cpp
+    StatusGrpcClient.cpp
 )
 
 # 2. 生成可执行文件

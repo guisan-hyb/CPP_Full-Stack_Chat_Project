@@ -38,8 +38,10 @@ enum ReqId{
  * @brief The Modules enum 模块ID
  */
 enum Modules{
-    MOD_REGISTER = 0,
-    MOD_RESET = 1,
+    MOD_REGISTER = 0, // 注册
+    MOD_RESET = 1, // 重置密码
+    MOD_LOGIN = 2, // 登录
+
 };
 
 /**
@@ -76,5 +78,15 @@ enum ClickLbState{
  * @brief gate_url_prefix 网关url前缀
  */
 extern QString gate_url_prefix;
+
+/**
+ * @brief The ServerInfo class
+ */
+struct ServerInfo{
+    QString Host;
+    QString Port;
+    QString Token;
+    int Uid;
+};
 
 #endif // GLOBAL_H

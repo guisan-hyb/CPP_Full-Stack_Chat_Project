@@ -46,5 +46,7 @@ void HttpMgr::slot_http_finish(ReqId id, QString res, ErrorCodes err, Modules mo
     }else if(mod == Modules::MOD_RESET){
         // http响应结束，通知重置密码模块
         emit sig_reset_mod_finish(id,res,err);
+    }else if(mod == Modules::MOD_LOGIN){
+        emit sig_login_mod_finish(id,res,err);
     }
 }
