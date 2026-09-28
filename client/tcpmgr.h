@@ -1,0 +1,43 @@
+#ifndef TCPMGR_H
+#define TCPMGR_H
+
+#include <QTcpSocket>
+#include "singleton.h"
+#include "global.h"
+#include <functional>
+#include <QObject>
+
+class TcpMgr: public QObject, public Singleton<TcpMgr>, public std::enable_shared_from_this<TcpMgr>
+{
+    Q_OBJECT
+    friend class Singleton<TcpMgr>;
+public:
+    ~TcpMgr();
+
+private:
+    TcpMgr();
+    void initHandlers();
+    void handleMsg(ReqId id, int len, QByteArray data); // 根据ReqId进行回调
+
+private:
+    QTcpSocket _socket;
+    QString _host;
+    uint16_t _port;
+    QByteArray _buffer;
+    bool _b_recv_pending;
+    quint16 _message_id;
+    quint16 _message_len;
+    QMap<ReqId,std::function<void(ReqId id, int len, QByteArray data)>> _handlers;
+
+public slots:
+    void slot_tcp_connect(ServerInfo); // 与login_dialog中的信号相连
+    void slot_send_data(ReqId reqId, QString data);
+
+signals:
+    void sig_conn_success(bool b_success);
+    void sig_send_data(ReqId reqId, QString data);
+    void sig_switch_chatDlg();
+    void sig_login_failed(int);
+};
+
+#endif // TCPMGR_H

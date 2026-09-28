@@ -3,6 +3,7 @@
 #include <QPainter>
 #include <QPainterPath>
 #include "httpmgr.h"
+#include "tcpmgr.h"
 
 LoginDialog::LoginDialog(QWidget *parent)
     : QDialog(parent)
@@ -21,6 +22,13 @@ LoginDialog::LoginDialog(QWidget *parent)
 
     // 连接 登录回包 信号
     connect(HttpMgr::GetInstance().get(),&HttpMgr::sig_login_mod_finish,this,&LoginDialog::slot_login_mod_finish);
+
+    // 连接tcp连接请求的信号和槽函数
+    connect(this,&LoginDialog::sig_connect_tcp,TcpMgr::GetInstance().get(),&TcpMgr::slot_tcp_connect);
+    // 连接tcp管理者发出的连接成功信号
+    connect(TcpMgr::GetInstance().get(),&TcpMgr::sig_conn_success,this,&LoginDialog::slot_tcp_conn_finish);
+    // 连接tcp管理者发出的连接失败信号
+    connect(TcpMgr::GetInstance().get(),&TcpMgr::sig_login_failed,this,&LoginDialog::slot_login_failed);
 }
 
 LoginDialog::~LoginDialog()
@@ -51,7 +59,7 @@ void LoginDialog::initHttpHandlers()
         _token = si.Token;
         qDebug()<<"email is: "<<email<<" uid is: "<<si.Uid<<" host is: "<<si.Host<<" Port is: "<<si.Port<<" Token is: "<<si.Token;
 
-        emit sig_connect_tcp(si);
+        emit sig_connect_tcp(si);// TcpMgr接收该信号
     };
 }
 
@@ -184,6 +192,7 @@ void LoginDialog::slot_login_mod_finish(ReqId id, QString res, ErrorCodes err)
 {
     if(err != ErrorCodes::SUCCESS){
         showTip(tr("网络请求错误"),false);
+        enableBtn(true); // 设置按钮可用
         return;
     }
 
@@ -193,11 +202,39 @@ void LoginDialog::slot_login_mod_finish(ReqId id, QString res, ErrorCodes err)
     // JSON解析错误
     if(jsonDoc.isNull()){
         showTip(tr("json解析错误"),false);
+        enableBtn(true); // 设置按钮可用
         return;
     }
 
     // 调用回调函数
     _handlers[id](jsonDoc.object());
+}
+
+void LoginDialog::slot_tcp_conn_finish(bool b_success)
+{
+    if(b_success){
+        showTip(tr("聊天服务连接成功，正在登录..."),true);
+        QJsonObject jsonObj;
+        jsonObj["uid"] = _uid;
+        jsonObj["token"] = _token;
+
+        QJsonDocument jsonDoc(jsonObj);
+        QString jsonstr= jsonDoc.toJson(QJsonDocument::Indented);
+
+        // 发送tcp请求给chat server
+        emit TcpMgr::GetInstance()->sig_send_data(ReqId::ID_CHAT_LOGIN, jsonstr);
+    }else{
+        showTip(tr("网络异常"),false);
+        enableBtn(true);
+    }
+}
+
+void LoginDialog::slot_login_failed(int err)
+{
+    QString result = QString("登录失败, err is %1")
+                         .arg(err);
+    showTip(result,false);
+    enableBtn(true);
 }
 
 

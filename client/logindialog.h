@@ -44,6 +44,8 @@ private slots:
     void slot_forget_pwd();//重置密码
     void on_login_btn_clicked();// 登录
     void slot_login_mod_finish(ReqId id, QString res, ErrorCodes err);// 处理 http登录回包
+    void slot_tcp_conn_finish(bool b_success);
+    void slot_login_failed(int);
 };
 
 #endif // LOGINDIALOG_H
