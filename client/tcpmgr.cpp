@@ -1,6 +1,6 @@
 #include "tcpmgr.h"
 #include <QAbstractSocket>
-
+#include "usermgr.h"
 
 
 TcpMgr::~TcpMgr()
@@ -97,7 +97,9 @@ void TcpMgr::initHandlers()
             return;
         }
 
-        // TODO...
+        UserMgr::GetInstance()->SetName(jsonObj["name"].toString());
+        UserMgr::GetInstance()->SetToken(jsonObj["token"].toString());
+        UserMgr::GetInstance()->SetUid(jsonObj["uid"].toInt());
 
         emit sig_switch_chatDlg();
     };
@@ -125,9 +127,9 @@ void TcpMgr::slot_tcp_connect(ServerInfo si)
 
 void TcpMgr::slot_send_data(ReqId reqId, QString data)
 {
-    uint8_t id = reqId;
+    uint16_t id = reqId;
     QByteArray dataBytes = data.toUtf8();
-    quint16 len = static_cast<quint16>(data.size());
+    quint16 len = static_cast<quint16>(dataBytes.size());
 
     QByteArray block;
     QDataStream out(&block,QIODevice::WriteOnly);

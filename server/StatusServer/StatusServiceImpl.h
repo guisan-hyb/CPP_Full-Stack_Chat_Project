@@ -52,5 +52,8 @@ private:
 private:
 	std::unordered_map<std::string, ChatServer> _servers; // 也可以用堆实现
 	std::mutex _server_mtx;
+
+	std::unordered_map<int, std::string> _tokens;
+	std::mutex _token_mtx;
 };
 
