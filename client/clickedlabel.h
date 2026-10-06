@@ -11,6 +11,7 @@ public:
     ClickedLabel(QWidget *parent=nullptr);
     ~ClickedLabel();
     virtual void mousePressEvent(QMouseEvent *ev) override;
+    virtual void mouseReleaseEvent(QMouseEvent *event) override;
     virtual void enterEvent(QEnterEvent *event) override;
     virtual void leaveEvent(QEvent *event) override;
 

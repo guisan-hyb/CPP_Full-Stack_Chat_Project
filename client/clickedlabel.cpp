@@ -19,21 +19,43 @@ void ClickedLabel::mousePressEvent(QMouseEvent *ev)
         if(_cur_state == ClickLbState::Normal){
             qDebug()<<"clicked, change to selected hover: "<<_selected_hover;
             _cur_state = ClickLbState::Selected;
-            setProperty("state",_selected_hover);// 联动qss
+            setProperty("state",_selected_press);// 联动qss
             repolish(this);
             update();
         }else{
             qDebug()<<"clicked,change to normal hover: "<<_normal_hover;
             _cur_state = ClickLbState::Normal;
-            setProperty("state",_normal_hover);// 联动qss
+            setProperty("state",_normal_press);// 联动qss
             repolish(this);
             update();
         }
-        emit clicked();// 发送自定义的点击信号
+        return;
     }
 
     // 调用基类方法
     QLabel::mousePressEvent(ev);
+}
+
+void ClickedLabel::mouseReleaseEvent(QMouseEvent *event)
+{
+    if(event->button() == Qt::LeftButton){
+        if(_cur_state == ClickLbState::Normal){
+            // qDebug()<<"ReleaseEvent , change to normal hover: "<< _normal_hover;
+            setProperty("state",_normal_hover);
+            repolish(this);
+            update();
+        }else{
+            //  qDebug()<<"ReleaseEvent , change to select hover: "<< _selected_hover;
+            setProperty("state",_selected_hover);
+            repolish(this);
+            update();
+        }
+        emit clicked();// 发送自定义的点击信号
+        return;
+    }
+
+    // 调用基类的mousePressEvent以保证正常的事件处理
+    QLabel::mouseReleaseEvent(event);
 }
 
 // 处理鼠标悬停进入事件
