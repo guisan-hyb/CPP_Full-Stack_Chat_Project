@@ -11,6 +11,7 @@ SOURCES += \
     chatpage.cpp \
     chatuserlist.cpp \
     chatuserwid.cpp \
+    chatview.cpp \
     clickedbtn.cpp \
     clickedlabel.cpp \
     customizeedit.cpp \
@@ -32,6 +33,7 @@ HEADERS += \
     chatpage.h \
     chatuserlist.h \
     chatuserwid.h \
+    chatview.h \
     clickedbtn.h \
     clickedlabel.h \
     customizeedit.h \
@@ -52,11 +54,13 @@ FORMS += \
     chatdialog.ui \
     chatpage.ui \
     chatuserwid.ui \
+    chatview.ui \
     loadingdialog.ui \
     logindialog.ui \
     mainwindow.ui \
     registerdialog.ui \
     resetdialog.ui
+    chatview.ui
 
 RC_ICONS = icon.ico # icon
 DESTDIR = ./bin # 指定编译后生成的可执行文件（例如 .exe 文件）的输出目录
