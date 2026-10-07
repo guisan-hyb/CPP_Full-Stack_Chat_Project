@@ -19,6 +19,9 @@ protected:
     // 注: 这里用protected是因为 -> paintEvent是由QWidget::event()内部调用的，所以用protected正好满足了可重写但不可直接调用的需求
     virtual void paintEvent(QPaintEvent *event) override;
 
+private slots:
+    void on_send_btn_clicked();
+
 private:
     Ui::ChatPage *ui;
 };

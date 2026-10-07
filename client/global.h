@@ -110,4 +110,22 @@ enum ListItemType{
     GROUP_TIP_ITEM, // 分组提示条目
 };
 
+/**
+ * @brief The ChatRole enum 聊天的角色: 自己还是别人
+ */
+enum class ChatRole{
+    Self,
+    Other
+};
+
+/**
+ * @brief The MsgInfo class
+ */
+struct MsgInfo
+{
+    QString msgFlag;// "text, image, file"
+    QString content;// 表示文件和图像的url, 文本信息
+    QPixmap pixmap;// 文件和图片的缩略图
+};
+
 #endif // GLOBAL_H
