@@ -18,6 +18,7 @@ SOURCES += \
     clickedbtn.cpp \
     clickedlabel.cpp \
     customizeedit.cpp \
+    findsuccessdlg.cpp \
     global.cpp \
     httpmgr.cpp \
     listitembase.cpp \
@@ -49,6 +50,7 @@ HEADERS += \
     clickedbtn.h \
     clickedlabel.h \
     customizeedit.h \
+    findsuccessdlg.h \
     global.h \
     httpmgr.h \
     listitembase.h \
@@ -74,6 +76,7 @@ FORMS += \
     chatpage.ui \
     chatuserwid.ui \
     chatview.ui \
+    findsuccessdlg.ui \
     loadingdialog.ui \
     logindialog.ui \
     mainwindow.ui \
@@ -113,14 +116,35 @@ DISTFILES += \
 
 
 
-# 自动复制配置文件
+# # 自动复制配置文件
+# CONFIG += file_copies
+
+# config_copy.files = $${PWD}/config.ini
+# CONFIG(debug, debug|release) {
+# config_copy.path = $${OUT_PWD}/debug
+# } else {
+# config_copy.path = $${OUT_PWD}/release
+# }
+# COPIES += config_copy
+
+
+
+# 自动复制配置文件和 static 文件夹
 CONFIG += file_copies
 
+# 指定要复制的源文件/文件夹
 config_copy.files = $${PWD}/config.ini
-CONFIG(debug, debug|release) {
-config_copy.path = $${OUT_PWD}/debug
-} else {
-config_copy.path = $${OUT_PWD}/release
-}
-COPIES += config_copy
+static_copy.files = $${PWD}/static
 
+# 统一复制到 DESTDIR 指定的输出目录 (即 ./bin 目录下)
+config_copy.path = $${OUT_PWD}/$${DESTDIR}
+static_copy.path = $${OUT_PWD}/$${DESTDIR}
+
+COPIES += config_copy static_copy
+
+
+# 设置 MSVC 编译器使用 UTF-8 编码
+msvc {
+    QMAKE_CFLAGS += /utf-8
+    QMAKE_CXXFLAGS += /utf-8
+}
