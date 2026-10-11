@@ -50,7 +50,7 @@ void ClickedLabel::mouseReleaseEvent(QMouseEvent *event)
             repolish(this);
             update();
         }
-        emit clicked();// 发送自定义的点击信号
+        emit clicked(this->text(),_cur_state);// 发送自定义的点击信号
         return;
     }
 
@@ -111,4 +111,26 @@ void ClickedLabel::SetState(QString normal, QString hover, QString press, QStrin
 ClickLbState ClickedLabel::GetCurState()
 {
     return _cur_state;
+}
+
+bool ClickedLabel::SetCurState(ClickLbState state)
+{
+    _cur_state = state;
+    if (_cur_state == ClickLbState::Normal) {
+        setProperty("state", _normal);
+        repolish(this);
+    }
+    else if (_cur_state == ClickLbState::Selected) {
+        setProperty("state", _selected);
+        repolish(this);
+    }
+
+    return true;
+}
+
+void ClickedLabel::ResetNormalState()
+{
+    _cur_state = ClickLbState::Normal;
+    setProperty("state", _normal);
+    repolish(this);
 }
