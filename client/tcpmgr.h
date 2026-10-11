@@ -40,6 +40,9 @@ signals:
     void sig_switch_chatDlg();
     void sig_login_failed(int);
     void sig_user_search(std::shared_ptr<SearchInfo>);
+    void sig_friend_apply(std::shared_ptr<AddFriendApply>);// 我 申请 对方 为好友的信号
+    void sig_add_auth_friend(std::shared_ptr<AuthInfo>);// 对方 同意了，发送的信号
+    void sig_auth_rsp(std::shared_ptr<AuthRsp>);// 对方申请我为好友，我同意了，会发送该信号
 };
 
 #endif // TCPMGR_H

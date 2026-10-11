@@ -161,14 +161,14 @@ const std::vector<QString> heads = {
 };
 
 const std::vector<QString> names = {
-    "HanMeiMei",
-    "Lily",
-    "Ben",
-    "Androw",
-    "Max",
-    "Summer",
-    "Candy",
-    "Hunter"
+    "zmjjkk",
+    "cxy",
+    "Obito",
+    "42",
+    "lgy",
+    "X-H",
+    "xin_an",
+    "counter"
 };
 
 const int CHAT_COUNT_PER_PAGE = 13;
