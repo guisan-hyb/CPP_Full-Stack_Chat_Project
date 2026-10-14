@@ -1,0 +1,30 @@
+# 统一源码字符编码,防止编辑器把文件写回 ANSI/GBK。
+# 背景:2026-10-14 服务端 44 个 GBK 文件已统一为 UTF-8(见 开发文档/复盘-服务端源码编码统一为UTF8.md);
+#      当时之所以能出现"44 个 GBK + 100 个 UTF-8"混用,就是因为仓库没有任何编码约束文件。
+# 说明:charset 是硬性约定;其余各项只是把仓库现状写下来,便于新文件与既有风格一致。
+root = true
+
+[*]
+charset = utf-8
+end_of_line = crlf
+insert_final_newline = true
+trim_trailing_whitespace = false
+
+# 服务端(C++):缩进用制表符
+[server/**.{cpp,h,hpp,cc}]
+indent_style = tab
+
+# 客户端(Qt C++ / .ui):缩进用 4 空格
+[client/*.{cpp,h,ui,pro}]
+indent_style = space
+indent_size = 4
+
+# 文档:2 空格
+[*.md]
+indent_style = space
+indent_size = 2
+
+# 配置与脚本
+[*.{proto,ini,json,js,qss}]
+indent_style = space
+indent_size = 4
