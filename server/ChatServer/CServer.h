@@ -13,7 +13,7 @@ class CServer {
 public:
 	CServer(net::io_context& ioc, short port_num);
 	~CServer();
-	void ClearSession(const std::string& uuid);
+	void ClearSession(const std::string& session_id);
 
 private:
 	void StartAccept();

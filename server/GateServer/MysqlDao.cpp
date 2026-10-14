@@ -109,9 +109,11 @@ bool MysqlDao::UpdatePwd(const std::string& name, const std::string& newpwd) {
 	}
 	catch (const mysqlx::Error& e) {
 		std::cerr << "MySQL Error: " << e.what() << std::endl;
+		return false;
 	}
 	catch (const std::exception& e) {
 		std::cerr << "Standard Error: " << e.what() << std::endl;
+		return false;
 	}
 }
 

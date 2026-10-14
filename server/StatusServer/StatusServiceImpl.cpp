@@ -31,7 +31,6 @@ StatusServiceImpl::StatusServiceImpl()
 		server.host = cfg[word]["Host"];
 		server.port = cfg[word]["Port"];
 		server.name = cfg[word]["Name"];
-		server.conn_count = 0;
 		_servers[server.name] = server;
 	}
 }
@@ -40,6 +39,10 @@ Status StatusServiceImpl::GetChatServer(ServerContext* context, const GetChatSer
 {
 	std::cout << "status server has received: " << std::endl;
 	const auto& server = getChatServer();
+	if (server.host == "" || server.port == "" || server.name == "") {
+		response->set_error(ErrorCodes::RPC_Failed);
+		return Status::CANCELLED;
+	}
 	response->set_host(server.host);
 	response->set_port(server.port);
 	response->set_error(ErrorCodes::Success);
@@ -53,14 +56,17 @@ Status StatusServiceImpl::Login(ServerContext* context, const LoginReq* request,
 	auto uid = request->uid();
 	auto token = request->token();
 
-	std::lock_guard<std::mutex> lk(_token_mtx);
-	auto iter = _tokens.find(uid);
-	if (iter == _tokens.end()) {
+	std::string uid_str = std::to_string(uid);
+	std::string token_key = std::string(USERTOKENPREFIX) + uid_str;
+	std::string token_value = "";
+	bool success = RedisMgr::GetInst()->Get(token_key, token_value);
+
+	if (!success) {
 		response->set_error(ErrorCodes::Uid_Invalid);
 		return Status::OK;
 	}
 
-	if (iter->second != token) {
+	if (token_value != token) {
 		response->set_error(ErrorCodes::Token_Invalid);
 		return Status::OK;
 	}
@@ -74,22 +80,45 @@ Status StatusServiceImpl::Login(ServerContext* context, const LoginReq* request,
 
 void StatusServiceImpl::insertToken(int uid, const std::string& token)
 {
-	std::lock_guard<std::mutex> lk(_token_mtx);
-	_tokens[uid] = token;
+	std::string uid_str = std::to_string(uid);
+	std::string token_key = std::string(USERTOKENPREFIX) + uid_str;
+	RedisMgr::GetInst()->Set(token_key, token);
 }
 
 ChatServer StatusServiceImpl::getChatServer()
 {
+	if (_servers.empty()) return ChatServer();
+
 	std::lock_guard<std::mutex> lk(_server_mtx);
-	auto minServer = _servers.begin()->second;
-	
+	auto min_server = _servers.begin()->second;
+	auto count_str = RedisMgr::GetInst()->HGet(std::string(LOGIN_COUNT), min_server.name);
+
+	if (count_str.empty()) {
+		min_server.conn_count = INT_MAX;
+	}
+	else {
+		min_server.conn_count = std::stoi(count_str);
+	}
+
 	for (auto& server : _servers) {
-		if (server.second.conn_count < minServer.conn_count) {
-			minServer = server.second;
+		if (server.second.name == min_server.name) continue;
+
+		auto cur_count_str = RedisMgr::GetInst()->HGet(std::string(LOGIN_COUNT), server.second.name);
+		if (cur_count_str.empty()) {
+			server.second.conn_count = INT_MAX;
+		}
+		else {
+			server.second.conn_count = std::stoi(cur_count_str);
+		}
+
+		if (server.second.conn_count < min_server.conn_count) {
+			min_server = server.second;
 		}
 	}
 
-	return minServer;
+	return min_server;
 }
+
+
 
 

@@ -46,6 +46,7 @@ private slots:
     void slot_login_mod_finish(ReqId id, QString res, ErrorCodes err);// 处理 http登录回包
     void slot_tcp_conn_finish(bool b_success);
     void slot_login_failed(int);
+    void slot_login_timeout();// 聊天登录超时
 };
 
 #endif // LOGINDIALOG_H

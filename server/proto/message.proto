@@ -46,3 +46,142 @@ service StatusService{
     rpc GetChatServer (GetChatServerReq) returns (GetChatServerRsp) {}
     rpc Login (LoginReq) returns (LoginRsp) {}
 }
+
+
+
+
+// 聊天服务
+service ChatService {
+  // 通知/转发添加好友申请
+  rpc NotifyAddFriend(AddFriendReq) returns (AddFriendRsp);
+
+  // 回复添加好友申请
+  rpc RplyAddFriend(RplyFriendReq) returns (RplyFriendRsp);
+
+  // 发送聊天消息，简版
+  rpc SendChatMsg(SendChatMsgReq) returns (SendChatMsgRsp);
+
+  // 通知认证好友，通常表示双方已成为好友
+  rpc NotifyAuthFriend(AuthFriendReq) returns (AuthFriendRsp);
+
+  // 通知文本聊天消息
+  rpc NotifyTextChatMsg(TextChatMsgReq) returns (TextChatMsgRsp);
+
+  // 通知踢用户下线
+  rpc NotifyKickUser(KickUserReq) returns (KickUserRsp);
+}
+
+// ==================== 好友申请相关 ====================
+
+// 添加好友请求
+message AddFriendReq {
+  int32  apply_uid = 1; // 申请方用户ID
+  string name     = 2; // 姓名
+  string desc     = 3; // 描述/备注
+  string icon     = 4; // 头像
+  string nick     = 5; // 昵称
+  int32  sex      = 6; // 性别
+  int32  to_uid    = 7; // 目标用户ID
+}
+
+// 添加好友响应
+message AddFriendRsp {
+  int32 error    = 1; // 错误码，通常 0 成功
+  int32 apply_uid = 2; // 申请方用户ID
+  int32 to_uid    = 3; // 目标用户ID
+}
+
+// 回复好友申请请求
+message RplyFriendReq {
+  int32 rply_uid = 1; // 回复方用户ID
+  bool  agree   = 2; // 是否同意
+  int32 to_uid   = 3; // 对方用户ID，通常为申请方
+}
+
+// 回复好友申请响应
+message RplyFriendRsp {
+  int32 error   = 1;
+  int32 rply_uid = 2;
+  int32 to_uid   = 3;
+}
+
+// ==================== 好友认证/通知相关 ====================
+
+// 好友申请消息体
+message AddFriendMsg {
+  int32  sender_id   = 1; // 发送方ID
+  string unique_id   = 2; // 唯一消息ID
+  int32  msg_id      = 3; // 消息ID
+  int32  thread_id   = 4; // 会话/线程ID
+  string msg_content  = 5; // 消息内容
+  int32  status      = 6; // 状态
+}
+
+// 通知认证好友请求
+message AuthFriendReq {
+  int32 from_uid = 1;                  // 发起方用户ID
+  int32 to_uid   = 2;                  // 目标方用户ID
+  repeated AddFriendMsg text_msgs = 3; // 好友申请相关消息列表
+}
+
+// 通知认证好友响应
+message AuthFriendRsp {
+  int32 error   = 1;
+  int32 from_uid = 2;
+  int32 to_uid   = 3;
+}
+
+// ==================== 文本聊天相关 ====================
+
+// 发送聊天消息请求，简版
+message SendChatMsgReq {
+  int32  from_uid = 1; // 发送方用户ID
+  int32  to_uid   = 2; // 接收方用户ID
+  string message = 3; // 消息内容
+}
+
+// 发送聊天消息响应，简版
+message SendChatMsgRsp {
+  int32 error   = 1;
+  int32 from_uid = 2;
+  int32 to_uid   = 3;
+}
+
+// 文本聊天数据
+message TextChatData {
+  string unique_id  = 1; // 唯一消息ID
+  int32  msg_id     = 2; // 消息ID
+  string msg_content = 3; // 消息内容
+  string chat_time  = 4; // 聊天时间
+}
+
+// 通知文本聊天消息请求
+message TextChatMsgReq {
+  int32 from_uid     = 1; // 发送方用户ID
+  int32 to_uid       = 2; // 接收方用户ID
+  int32 thread_id   = 3; // 会话/线程ID
+  repeated TextChatData text_msgs = 4; // 文本消息列表
+}
+
+// 通知文本聊天消息响应
+message TextChatMsgRsp {
+  int32 error       = 1;
+  int32 from_uid     = 2;
+  int32 to_uid       = 3;
+  int32 thread_id   = 4;
+  repeated TextChatData text_msgs = 5;
+}
+
+// ==================== 踢人相关 ====================
+
+// 踢用户下线请求
+message KickUserReq {
+  int32 uid = 1;
+}
+
+// 踢用户下线响应
+message KickUserRsp {
+  int32 error = 1;
+  int32 uid   = 2;
+}
+

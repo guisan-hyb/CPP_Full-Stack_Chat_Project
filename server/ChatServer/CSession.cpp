@@ -7,10 +7,10 @@
 #include "LogicSystem.h"
 
 CSession::CSession(net::io_context& ioc, CServer* server)
-	: _socket(ioc), _server(server), _b_stop(false)
+	: _socket(ioc), _server(server), _b_stop(false), _user_id(0)
 {
 	boost::uuids::uuid a_uuid = boost::uuids::random_generator()();
-	_uuid = boost::uuids::to_string(a_uuid);
+	_session_id = boost::uuids::to_string(a_uuid);
 
 	_recv_head_node = std::make_shared<RecvNode>(HEAD_TOTAL_LEN, 0);
 }
@@ -24,9 +24,19 @@ net::ip::tcp::socket& CSession::GetSocket() {
 	return _socket;
 }
 
-std::string CSession::GetUuid()
+const std::string& CSession::GetSessionId()
 {
-	return _uuid;
+	return _session_id;
+}
+
+void CSession::SetUserId(int uid)
+{
+	_user_id = uid;
+}
+
+int CSession::GetUserId()
+{
+	return _user_id;
 }
 
 void CSession::Start() {
@@ -41,7 +51,7 @@ void CSession::Send(std::string& msg, short msg_id)
 	std::lock_guard<std::mutex> lk(_send_mtx);
 	int send_que_size = _send_que.size();
 	if (send_que_size > MAX_SENDQUE) {
-		std::cout << "session: " << _uuid << " send que failed, size is: " << MAX_SENDQUE << std::endl;
+		std::cout << "session: " << _session_id << " send que failed, size is: " << MAX_SENDQUE << std::endl;
 		return;
 	}
 
@@ -76,7 +86,7 @@ void CSession::DoWrite()
 				}
 				else {
 					std::cout << "handle write failed, error code is: " << ec.message() << std::endl;
-					_server->ClearSession(_uuid);
+					_server->ClearSession(_session_id);
 					Close();
 				}
 			}
@@ -94,7 +104,7 @@ void CSession::HandleReadHead(boost::system::error_code ec, std::size_t bytes_tr
 		if (!ec) {
 			if (bytes_transferred < HEAD_TOTAL_LEN) {
 				Close();
-				_server->ClearSession(_uuid);
+				_server->ClearSession(_session_id);
 				std::cerr << "read head lenth error" << std::endl;
 				return;
 			}
@@ -104,7 +114,8 @@ void CSession::HandleReadHead(boost::system::error_code ec, std::size_t bytes_tr
 			msg_id = net::detail::socket_ops::network_to_host_short(msg_id);
 			if (msg_id > MAX_LENGTH) {
 				std::cout << "invalid msg_id is: " << msg_id << std::endl;
-				_server->ClearSession(_uuid);
+				Close();
+				_server->ClearSession(_session_id);
 				return;
 			}
 
@@ -113,7 +124,8 @@ void CSession::HandleReadHead(boost::system::error_code ec, std::size_t bytes_tr
 			msg_len = net::detail::socket_ops::network_to_host_short(msg_len);
 			if (msg_len > MAX_LENGTH) {
 				std::cout << "invalid msg_len is: " << msg_len << std::endl;
-				_server->ClearSession(_uuid);
+				Close();
+				_server->ClearSession(_session_id);
 				return;
 			}
 
@@ -125,7 +137,7 @@ void CSession::HandleReadHead(boost::system::error_code ec, std::size_t bytes_tr
 		else {
 			std::cerr << "handle read head failed, error: " << ec.message() << std::endl;
 			Close();
-			_server->ClearSession(_uuid);
+			_server->ClearSession(_session_id);
 		}
 	}
 	catch (const std::exception& e)
@@ -141,7 +153,7 @@ void CSession::HandleReadMsg(boost::system::error_code ec, std::size_t bytes_tra
 		if (!ec) {
 			if (bytes_transferred < _recv_msg_node->_total_len) {
 				Close();
-				_server->ClearSession(_uuid);
+				_server->ClearSession(_session_id);
 				std::cerr << "read msg lenth error" << std::endl;
 				return;
 			}
@@ -159,7 +171,7 @@ void CSession::HandleReadMsg(boost::system::error_code ec, std::size_t bytes_tra
 		else {
 			std::cerr << "handle read head failed, error: " << ec.message() << std::endl;
 			Close();
-			_server->ClearSession(_uuid);
+			_server->ClearSession(_session_id);
 		}
 	}
 	catch (const std::exception& e)

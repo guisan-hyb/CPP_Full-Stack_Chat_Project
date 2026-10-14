@@ -29,6 +29,8 @@ LoginDialog::LoginDialog(QWidget *parent)
     connect(TcpMgr::GetInstance().get(),&TcpMgr::sig_conn_success,this,&LoginDialog::slot_tcp_conn_finish);
     // 连接tcp管理者发出的连接失败信号
     connect(TcpMgr::GetInstance().get(),&TcpMgr::sig_login_failed,this,&LoginDialog::slot_login_failed);
+    // 连接tcp管理者发出的登录超时信号
+    connect(TcpMgr::GetInstance().get(),&TcpMgr::sig_login_timeout,this,&LoginDialog::slot_login_timeout);
 }
 
 LoginDialog::~LoginDialog()
@@ -234,6 +236,12 @@ void LoginDialog::slot_login_failed(int err)
     QString result = QString("登录失败, err is %1")
                          .arg(err);
     showTip(result,false);
+    enableBtn(true);
+}
+
+void LoginDialog::slot_login_timeout()
+{
+    showTip(tr("登录超时，请检查网络后重试"),false);
     enableBtn(true);
 }
 

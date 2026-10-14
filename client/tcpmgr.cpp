@@ -48,9 +48,19 @@ TcpMgr::TcpMgr()
     });
 
     // 处理错误
-    QObject::connect(&_socket, QOverload<QAbstractSocket::SocketError>::of(&QTcpSocket::errorOccurred), [&](QAbstractSocket::SocketError socketError) {
-        Q_UNUSED(socketError)
-        qDebug() << "Error:" << _socket.errorString();
+    QObject::connect(&_socket, QOverload<QAbstractSocket::SocketError>::of(&QTcpSocket::errorOccurred), [this](QAbstractSocket::SocketError socketError) {
+        qDebug() << "socket error:" << socketError << _socket.errorString();
+        // 连接出错时通知登录界面，别让按钮一直卡在禁用状态
+        _login_timer.stop();
+        emit sig_conn_success(false);
+    });
+
+    // 聊天登录超时保护：服务端不回包时也要让界面能提示并恢复
+    _login_timer.setSingleShot(true);
+    _login_timer.setInterval(10000);// 10秒
+    QObject::connect(&_login_timer,&QTimer::timeout,this,[this](){
+        qDebug()<<"wait ID_CHAT_LOGIN_RSP timeout";
+        emit sig_login_timeout();
     });
 
     // 处理连接断开
@@ -73,6 +83,7 @@ void TcpMgr::initHandlers()
     // 由于我们在构造函数里调用initHandlers,所以这个类没构造完
 
     _handlers[ReqId::ID_CHAT_LOGIN_RSP] = [this](ReqId id, int len, QByteArray data){
+        _login_timer.stop();// 收到登录回包，取消超时等待
         qDebug()<<"handle id is: "<<id<<", data is: "<<data;
         QJsonDocument jsonDoc = QJsonDocument::fromJson(data);
 
@@ -145,5 +156,10 @@ void TcpMgr::slot_send_data(ReqId reqId, QString data)
     block.append(dataBytes);
 
     _socket.write(block);
+
+    // 发的是聊天登录请求，开始等回包
+    if(reqId == ReqId::ID_CHAT_LOGIN){
+        _login_timer.start();
+    }
 }
 

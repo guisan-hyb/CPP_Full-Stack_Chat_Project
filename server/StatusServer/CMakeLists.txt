@@ -9,6 +9,7 @@ set(STATUS_SERVER_SOURCES
     MysqlMgr.cpp
     StatusServer.cpp
     StatusServiceImpl.cpp
+    ChatGrpcClient.cpp
 )
 
 # 2. 生成可执行文件

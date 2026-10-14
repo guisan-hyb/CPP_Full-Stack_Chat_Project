@@ -13,6 +13,9 @@ set(CHAT_SERVER_SOURCES
     MysqlMgr.cpp
     RedisMgr.cpp
     StatusGrpcClient.cpp
+    ChatGrpcClient.cpp
+    UserMgr.cpp
+    ChatServiceImpl.cpp
 )
 
 # 2.生成可执行文件

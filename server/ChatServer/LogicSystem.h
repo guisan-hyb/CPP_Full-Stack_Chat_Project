@@ -24,6 +24,7 @@ private:
 	LogicSystem();
 	void DealMsg();
 	void RegisterCallBacks();
+	bool GetBaseInfo(const std::string& base_key, int uid, std::shared_ptr<UserInfo>& user_info);
 
 private:
 	std::thread _work_thread;
@@ -33,5 +34,4 @@ private:
 	std::atomic<bool> _b_stop;
 
 	std::unordered_map<short, FuncCallBack> _func_callbacks;
-	std::unordered_map<int, std::shared_ptr<UserInfo>> _users;
 };
