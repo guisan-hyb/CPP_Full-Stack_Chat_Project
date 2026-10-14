@@ -18,24 +18,24 @@ MysqlDao::~MysqlDao() {
 int MysqlDao::RegUser(const std::string& name, const std::string& email, const std::string& pwd)
 {
 	try {
-		// »ñÈ¡ Session (Ïàµ±ÓÚ»ñÈ¡Á¬½Ó)
-		// ×¢Òâ£ºsess ÊÇ¾Ö²¿±äÁ¿£¬º¯Êı½áÊø×Ô¶¯Îö¹¹£¬Á¬½Ó×Ô¶¯¹é»¹³Ø×Ó£¬²»ĞèÒªÊÖ¶¯ returnConnection
+		// è·å– Session (ç›¸å½“äºè·å–è¿æ¥)
+		// æ³¨æ„ï¼šsess æ˜¯å±€éƒ¨å˜é‡ï¼Œå‡½æ•°ç»“æŸè‡ªåŠ¨ææ„ï¼Œè¿æ¥è‡ªåŠ¨å½’è¿˜æ± å­ï¼Œä¸éœ€è¦æ‰‹åŠ¨ returnConnection
 		mysqlx::Session sess = _pool->getConnection();
 
-		// X DevAPI Ö´ĞĞÔ­Éú SQL ²¢°ó¶¨²ÎÊı
-		// µ÷ÓÃ´æ´¢¹ı³Ì reg_user£¬´«Èë 3 ¸ö²ÎÊı£¬µÚ 4 ¸öÊÇÊä³ö²ÎÊı @result
+		// X DevAPI æ‰§è¡ŒåŸç”Ÿ SQL å¹¶ç»‘å®šå‚æ•°
+		// è°ƒç”¨å­˜å‚¨è¿‡ç¨‹ reg_userï¼Œä¼ å…¥ 3 ä¸ªå‚æ•°ï¼Œç¬¬ 4 ä¸ªæ˜¯è¾“å‡ºå‚æ•° @result
 		sess.sql("CALL reg_user(?,?,?,@result)")
 			.bind(name)
 			.bind(email)
 			.bind(pwd)
 			.execute();
 
-		// ¶ÁÈ¡»á»°±äÁ¿ @result
+		// è¯»å–ä¼šè¯å˜é‡ @result
 		mysqlx::SqlResult res = sess.sql("SELECT @result AS result").execute();
 		mysqlx::Row row = res.fetchOne();
 
 		if (row) {
-			// ÅĞ¶ÏÊÇ·ñÎª NULL£¬Èç¹û²»Îª¿ÕÔò»ñÈ¡ int Öµ
+			// åˆ¤æ–­æ˜¯å¦ä¸º NULLï¼Œå¦‚æœä¸ä¸ºç©ºåˆ™è·å– int å€¼
 			if (row[0].isNull()) return -1;
 
 			int result = row[0].get<int>();
@@ -57,27 +57,27 @@ int MysqlDao::RegUser(const std::string& name, const std::string& email, const s
 
 bool MysqlDao::CheckEmail(const std::string& name, const std::string& email) {
 	try {
-		// »ñÈ¡Session
+		// è·å–Session
 		mysqlx::Session sess = _pool->getConnection();
 
-		// Ö´ĞĞ²éÑ¯£¬°ó¶¨²ÎÊı
+		// æ‰§è¡ŒæŸ¥è¯¢ï¼Œç»‘å®šå‚æ•°
 		mysqlx::SqlResult res = sess.sql("SELECT email FROM user WHERE name = ?")
 								.bind(name)
 								.execute();
 		
-		// »ñÈ¡µÚÒ»ĞĞ (ÒòÎªÓÃ»§ÃûÍ¨³£ÊÇÎ¨Ò»µÄ£¬×î¶àÖ»ÓĞÒ»Ìõ½á¹û)
+		// è·å–ç¬¬ä¸€è¡Œ (å› ä¸ºç”¨æˆ·åé€šå¸¸æ˜¯å”¯ä¸€çš„ï¼Œæœ€å¤šåªæœ‰ä¸€æ¡ç»“æœ)
 		mysqlx::Row row = res.fetchOne();
 
-		if (row) { // Èç¹û²éµ½ÁËÊı¾İ
-			// °²È«µØ»ñÈ¡×Ö·û´®£¬×¢Òâ´¦Àí¿ÉÄÜÎª NULL µÄÇé¿ö
+		if (row) { // å¦‚æœæŸ¥åˆ°äº†æ•°æ®
+			// å®‰å…¨åœ°è·å–å­—ç¬¦ä¸²ï¼Œæ³¨æ„å¤„ç†å¯èƒ½ä¸º NULL çš„æƒ…å†µ
 			std::string db_email = row[0].isNull() ? "" : row[0].get<std::string>();
 			std::cout << "Check Email: " << db_email << std::endl;
 
-			// ±È¶ÔÓÊÏäÊÇ·ñÒ»ÖÂ
+			// æ¯”å¯¹é‚®ç®±æ˜¯å¦ä¸€è‡´
 			return email == db_email;
 		}
 
-		// Èç¹ûÃ»²éµ½¸ÃÓÃ»§£¬Ö±½Ó·µ»Ø false
+		// å¦‚æœæ²¡æŸ¥åˆ°è¯¥ç”¨æˆ·ï¼Œç›´æ¥è¿”å› false
 		return false;
 	}
 	catch (const mysqlx::Error& e) {
@@ -92,16 +92,16 @@ bool MysqlDao::CheckEmail(const std::string& name, const std::string& email) {
 
 bool MysqlDao::UpdatePwd(const std::string& name, const std::string& newpwd) {
 	try {
-		// »ñÈ¡ Session
+		// è·å– Session
 		mysqlx::Session sess = _pool->getConnection();
 
-		// Ö´ĞĞ¸üĞÂ²Ù×÷£¬Á´Ê½°ó¶¨²ÎÊı (°´ SQL ÖĞ ? µÄË³Ğò)
+		// æ‰§è¡Œæ›´æ–°æ“ä½œï¼Œé“¾å¼ç»‘å®šå‚æ•° (æŒ‰ SQL ä¸­ ? çš„é¡ºåº)
 		mysqlx::SqlResult res = sess.sql("UPDATE user SET pwd = ? WHERE name = ?")
 								.bind(newpwd)
 								.bind(name)
 								.execute();
 
-		// »ñÈ¡ÊÜÓ°ÏìµÄĞĞÊı
+		// è·å–å—å½±å“çš„è¡Œæ•°
 		int updateCount = res.getAffectedItemsCount();
 		std::cout << "Updated rows: " << updateCount << std::endl;
 
@@ -119,28 +119,28 @@ bool MysqlDao::UpdatePwd(const std::string& name, const std::string& newpwd) {
 
 bool MysqlDao::CheckPwd(const std::string& email, const std::string& pwd, UserInfo& userInfo) {
 	try {
-		// »ñÈ¡ Session
+		// è·å– Session
 		mysqlx::Session sess = _pool->getConnection();
 
 		mysqlx::SqlResult res = sess.sql("SELECT uid, name, email, pwd FROM user WHERE email = ?")
 								.bind(email)
 								.execute();
 
-		// fetchOne() Ö±½Ó»ñÈ¡µÚÒ»ĞĞ£¬Èç¹ûÃ»ÓĞ²éµ½Êı¾İ»á·µ»ØÒ»¸ö¿ÕµÄ Row
+		// fetchOne() ç›´æ¥è·å–ç¬¬ä¸€è¡Œï¼Œå¦‚æœæ²¡æœ‰æŸ¥åˆ°æ•°æ®ä¼šè¿”å›ä¸€ä¸ªç©ºçš„ Row
 		mysqlx::Row row = res.fetchOne();
 
-		if (!row) return false; // Ã»²éµ½¸ÃÓÃ»§
+		if (!row) return false; // æ²¡æŸ¥åˆ°è¯¥ç”¨æˆ·
 
-		// »ñÈ¡ÃÜÂë
+		// è·å–å¯†ç 
 		std::string origin_pwd = row[3].isNull() ? "" : row[3].get<std::string>();
 		std::cout << "Password: " << origin_pwd << std::endl;
 
-		// ÃÜÂë±È¶Ô
+		// å¯†ç æ¯”å¯¹
 		if (pwd != origin_pwd) {
 			return false;
 		}
 
-		// ÃÜÂëÕıÈ·ÔòÌî³äuserInfo
+		// å¯†ç æ­£ç¡®åˆ™å¡«å……userInfo
 		userInfo.uid = row[0].get<int>();
 		userInfo.name = row[1].isNull() ? "" : row[1].get<std::string>();
 		userInfo.email = row[2].isNull() ? "" : row[2].get<std::string>();

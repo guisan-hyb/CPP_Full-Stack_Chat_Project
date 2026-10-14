@@ -9,11 +9,11 @@ public:
 		: _b_stop(false)
 	{
 		try {
-			// X DevAPI Á¬½Ó×Ö·û´®¸ñÊ½: mysqlx://user:pass@host:port/schema
+			// X DevAPI è¿æ¥å­—ç¬¦ä¸²æ ¼å¼: mysqlx://user:pass@host:port/schema
 			std::string url = "mysqlx://" + user + ":" + pass + "@" + host + ":" + port + "/" + schema;
 
-			// Ö±½ÓÀûÓÃ X DevAPI µÄ Client ÊµÏÖÁ¬½Ó³Ø
-			// ÉèÖÃ POOL_MAX_SIZE Îª poolSize£¬µ×²ã×Ô¶¯¹ÜÀíÁ¬½ÓµÄ½èÓÃºÍ¹é»¹
+			// ç›´æ¥åˆ©ç”¨ X DevAPI çš„ Client å®ç°è¿æ¥æ± 
+			// è®¾ç½® POOL_MAX_SIZE ä¸º poolSizeï¼Œåº•å±‚è‡ªåŠ¨ç®¡ç†è¿æ¥çš„å€Ÿç”¨å’Œå½’è¿˜
 			_client = std::make_unique<mysqlx::Client>(
 				url,
 				mysqlx::ClientOption::POOL_MAX_SIZE, poolSize
@@ -26,8 +26,8 @@ public:
 		}
 	}
 
-	// »ñÈ¡Ò»¸ö Session (Ïàµ±ÓÚ JDBC ÖĞµÄ Connection)
-	// ·µ»ØÖµÊÇ RAII ¶ÔÏó£¬Àë¿ª×÷ÓÃÓò×Ô¶¯Îö¹¹£¬Á¬½Ó×Ô¶¯¹é»¹Á¬½Ó³Ø£¡
+	// è·å–ä¸€ä¸ª Session (ç›¸å½“äº JDBC ä¸­çš„ Connection)
+	// è¿”å›å€¼æ˜¯ RAII å¯¹è±¡ï¼Œç¦»å¼€ä½œç”¨åŸŸè‡ªåŠ¨ææ„ï¼Œè¿æ¥è‡ªåŠ¨å½’è¿˜è¿æ¥æ± ï¼
 	mysqlx::Session getConnection() {
 		if (!_client || _b_stop) {
 			throw std::runtime_error("MySQL client is not initialized or pool is stopped");

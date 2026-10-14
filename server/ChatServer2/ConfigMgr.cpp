@@ -29,7 +29,7 @@ ConfigMgr::ConfigMgr() {
 	while (std::getline(file, line)) {
 		line = trim(line);
 
-		// ¼ÇµÃÌø¹ı¿ÕĞĞºÍ×¢ÊÍ
+		// è®°å¾—è·³è¿‡ç©ºè¡Œå’Œæ³¨é‡Š
 		if (line.empty() || line[0] == ';' || line[0] == '#') continue;
 
 		if (line.front() == '[' && line.back() == ']') {
@@ -46,11 +46,11 @@ ConfigMgr::ConfigMgr() {
 
 			if (!key.empty() && !sectionInfo_name.empty())
 				_config_map[sectionInfo_name][key] = val;
-			// ×¢£ºÕâÖÖĞ´·¨Òª°Ñ []ÖØÔØµÄ·µ»ØÖµ¸ÄÎªÒıÓÃ
+			// æ³¨ï¼šè¿™ç§å†™æ³•è¦æŠŠ []é‡è½½çš„è¿”å›å€¼æ”¹ä¸ºå¼•ç”¨
 		}
 	}
 
-	// ²âÊÔ, ´òÓ¡ËùÓĞµÄ¼üÖµ¶Ô
+	// æµ‹è¯•, æ‰“å°æ‰€æœ‰çš„é”®å€¼å¯¹
 	for (auto& ele : _config_map) {
 		auto& sectionInfo_name = ele.first;
 		auto& sectionInfo = ele.second;

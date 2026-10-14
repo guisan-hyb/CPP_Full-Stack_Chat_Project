@@ -1,7 +1,7 @@
 #include "ConfigMgr.h"
 
-// ¸¨Öúº¯Êı£ºÈ¥³ı×Ö·û´®Ê×Î²µÄ¿Õ¸ñºÍ»Ø³µ»»ĞĞ·û
-// Linux»»ĞĞ·ûÊÇ\n, Windows»»ĞĞ·ûÊÇ\r\n
+// è¾…åŠ©å‡½æ•°ï¼šå»é™¤å­—ç¬¦ä¸²é¦–å°¾çš„ç©ºæ ¼å’Œå›è½¦æ¢è¡Œç¬¦
+// Linuxæ¢è¡Œç¬¦æ˜¯\n, Windowsæ¢è¡Œç¬¦æ˜¯\r\n
 std::string trim(const std::string& str) {
 	std::size_t first = str.find_first_not_of(" \t\r\n");
 	if (first == std::string::npos) {
@@ -13,13 +13,13 @@ std::string trim(const std::string& str) {
 }
 
 ConfigMgr::ConfigMgr() {
-	// »ñÈ¡µ±Ç°¹¤×÷Ä¿Â¼ (Ê¹ÓÃ C++17 std::filesystem)
+	// è·å–å½“å‰å·¥ä½œç›®å½• (ä½¿ç”¨ C++17 std::filesystem)
 	std::filesystem::path current_path = std::filesystem::current_path();
-	// ¹¹½¨ config.ini ÎÄ¼şµÄÍêÕûÂ·¾¶
+	// æ„å»º config.ini æ–‡ä»¶çš„å®Œæ•´è·¯å¾„
 	std::filesystem::path config_path = current_path / "config.ini";
 	std::cout << "Config path: " << config_path << std::endl;
 
-	// Ê¹ÓÃ±ê×¼¿â ifstream ¶ÁÈ¡ÎÄ¼ş
+	// ä½¿ç”¨æ ‡å‡†åº“ ifstream è¯»å–æ–‡ä»¶
 	std::ifstream file(config_path);
 	if (!file.is_open()) {
 		std::cerr << "Failed to open config file: " << config_path << std::endl;
@@ -30,25 +30,25 @@ ConfigMgr::ConfigMgr() {
 	std::string current_section;
 	SectionInfo current_section_info;
 
-	// ÖğĞĞ½âÎö INI ÎÄ¼ş
+	// é€è¡Œè§£æ INI æ–‡ä»¶
 	while (std::getline(file, line)) {
 		std::string trimmed_line = trim(line);
 
-		// Ìø¹ı¿ÕĞĞºÍ×¢ÊÍ (ÒÔ ; »ò # ¿ªÍ·)
+		// è·³è¿‡ç©ºè¡Œå’Œæ³¨é‡Š (ä»¥ ; æˆ– # å¼€å¤´)
 		if (trimmed_line.empty() || trimmed_line[0] == ';' || trimmed_line[0] == '#') {
 			continue;
 		}
 
-		// ½âÎöSection -> Ãû³Æ£¬ÀıÈç: [GateServer]
+		// è§£æSection -> åç§°ï¼Œä¾‹å¦‚: [GateServer]
 		if (trimmed_line.front() == '[' && trimmed_line.back() == ']') {
-			// Èç¹ûÖ®Ç°ÒÑ¾­ÓĞ section ÔÚ½âÎö£¬ÏÈ½«Æä´æÈë map
+			// å¦‚æœä¹‹å‰å·²ç»æœ‰ section åœ¨è§£æï¼Œå…ˆå°†å…¶å­˜å…¥ map
 			if (!current_section.empty()) {
 				_config_map[current_section] = current_section_info;
 				current_section_info._section_datas.clear();
 			}
-			current_section = trimmed_line.substr(1, trimmed_line.size() - 2);// »ñÈ¡Ãû³Æ [1~n-2]
+			current_section = trimmed_line.substr(1, trimmed_line.size() - 2);// è·å–åç§° [1~n-2]
 		}
-		// ½âÎö ¼üÖµ¶Ô
+		// è§£æ é”®å€¼å¯¹
 		else {
 			std::size_t pos = trimmed_line.find('=');
 			if (pos != std::string::npos) {
@@ -62,12 +62,12 @@ ConfigMgr::ConfigMgr() {
 		}
 	}
 
-	// ½«×îºóÒ»¸ö section ´æÈë map
+	// å°†æœ€åä¸€ä¸ª section å­˜å…¥ map
 	if (!current_section.empty()) {
 		_config_map[current_section] = current_section_info;
 	}
 
-	// Êä³öËùÓĞµÄ section ºÍ key-value ¶Ô  
+	// è¾“å‡ºæ‰€æœ‰çš„ section å’Œ key-value å¯¹  
 	for (const auto& section_entry : _config_map) {
 		const std::string& section_name = section_entry.first;
 		const SectionInfo& section_config = section_entry.second;

@@ -28,7 +28,7 @@ void CServer::ClearSession(const std::string& session_id)
 	int uid = it->second->GetUserId();
 	std::string server_name = ConfigMgr::GetInst()["SelfServer"]["Name"];
 
-	// ÅÅ³ý×Ô¼º, ±¾»úÊÇ·ñ»¹ÓÐ¸ÃuidµÄÆäËû»á»°(Í¬»ú¶à¿ªÍ¬Ò»ÕËºÅ,»òÕßÍ¬Ò»Á¬½ÓÖØµÇ¹ý)
+	// æŽ’é™¤è‡ªå·±, æœ¬æœºæ˜¯å¦è¿˜æœ‰è¯¥uidçš„å…¶ä»–ä¼šè¯(åŒæœºå¤šå¼€åŒä¸€è´¦å·,æˆ–è€…åŒä¸€è¿žæŽ¥é‡ç™»è¿‡)
 	bool has_other_local = false;
 	if (uid > 0) {
 		for (auto& kv : _sessions) {
@@ -41,7 +41,7 @@ void CServer::ClearSession(const std::string& session_id)
 	}
 
 	_sessions.erase(it);
-	if (uid <= 0) return; // 0 Ö»´æÔÚÓÚ"Á¬½ÓÒÑ½¨Á¢¡¢µ«µÇÂ¼»¹Ã»³É¹¦"Õâ¶ÎÇø¼äÀï
+	if (uid <= 0) return; // 0 åªå­˜åœ¨äºŽ"è¿žæŽ¥å·²å»ºç«‹ã€ä½†ç™»å½•è¿˜æ²¡æˆåŠŸ"è¿™æ®µåŒºé—´é‡Œ
 
 	UserMgr::GetInst()->RmvUserSession(uid);
 
@@ -51,7 +51,7 @@ void CServer::ClearSession(const std::string& session_id)
 	if (conn_count) conn_count--;
 	RedisMgr::GetInst()->HSet(std::string(LOGIN_COUNT), server_name, std::to_string(conn_count));
 
-	// uip_: ¸Ã×Ö¶ÎÖ»ÓÐÔÚ "ÕâÌõ»á»°ÕæµÄµÇÂ½¹ý"+"¹éÊô»¹ÊÇÎÒÕâÌ¨"+"±¾»úÃ»ÓÐ¸ÃuidµÄÆäËû»á»°" Ê±²ÅÉ¾³ý
+	// uip_: è¯¥å­—æ®µåªæœ‰åœ¨ "è¿™æ¡ä¼šè¯çœŸçš„ç™»é™†è¿‡"+"å½’å±žè¿˜æ˜¯æˆ‘è¿™å°"+"æœ¬æœºæ²¡æœ‰è¯¥uidçš„å…¶ä»–ä¼šè¯" æ—¶æ‰åˆ é™¤
 	if (has_other_local) return;
 	std::string cur_owner;
 	if (!RedisMgr::GetInst()->Get(std::string(USERIPPREFIX) + std::to_string(uid), cur_owner)) return;

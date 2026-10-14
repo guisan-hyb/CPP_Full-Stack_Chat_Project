@@ -8,7 +8,7 @@ GetVerifyRsp VerifyGrpcClient::GetVerifyCode(std::string email) {
 
 	request.set_email(email);
 	auto stub = _pool->GetConnection();
-	// 防止空指针解引用崩溃
+	// 闃叉绌烘寚閽堣В寮曠敤宕╂簝
 	if (!stub) {
 		reply.set_error(ErrorCodes::RPC_Failed);
 		return reply;

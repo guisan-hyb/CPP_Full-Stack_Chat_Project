@@ -12,21 +12,21 @@ int main() {
 
 	try {
 		auto pool = AsioIOServicePool::GetInst();
-		// ½«µÇÂ¼ÊıÉèÖÃÎª 0 
+		// å°†ç™»å½•æ•°è®¾ç½®ä¸º 0 
 		RedisMgr::GetInst()->HSet(std::string(LOGIN_COUNT), server_name, "0");
 
-		// ¶¨ÒåÒ»¸öGrpcServer
+		// å®šä¹‰ä¸€ä¸ªGrpcServer
 		std::string server_address(cfg["SelfServer"]["Host"] + ":" + cfg["SelfServer"]["RPCPort"]);
 		ChatServiceImpl service;
 		ServerBuilder builder;
-		// ¼àÌı¶Ë¿ÚºÍÌí¼Ó·şÎñ
+		// ç›‘å¬ç«¯å£å’Œæ·»åŠ æœåŠ¡
 		builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
 		builder.RegisterService(&service);
-		// ¹¹½¨²¢Æô¶¯gRPC·şÎñÆ÷
+		// æ„å»ºå¹¶å¯åŠ¨gRPCæœåŠ¡å™¨
 		std::unique_ptr<Server> server(builder.BuildAndStart());
 		std::cout << "RPC Server listening on: " << server_address << std::endl;
 
-		// µ¥¶ÀÒ»¸öÏß³Ì´¦Àígrpc·şÎñ
+		// å•ç‹¬ä¸€ä¸ªçº¿ç¨‹å¤„ç†grpcæœåŠ¡
 		std::thread grpc_server_thread([&server]() {
 			server->Wait();
 		});

@@ -160,7 +160,7 @@ void CSession::HandleReadMsg(boost::system::error_code ec, std::size_t bytes_tra
 
 			_recv_msg_node->_data[_recv_msg_node->_total_len] = '\0';
 
-			// 投递到逻辑队列
+			// 鎶曢�掑埌閫昏緫闃熷垪
 			LogicSystem::GetInst()->PostMsgToQue(std::make_shared<LogicNode>(_self_shared, _recv_msg_node));
 
 			_recv_head_node->Clear();

@@ -4,24 +4,24 @@
 
 class HttpConnection : public std::enable_shared_from_this<HttpConnection>
 {
-	friend class LogicSystem;// ½«µ¥ÀıÂß¼­ÀàÉèÖÃÎªÓÑÔª±ãÓÚ´¦Àí£¬Ò²¿ÉÒÔÔÙ·â×°Ò»¸ö½Ó¿Ú£¬¶¼¿ÉÒÔ
+	friend class LogicSystem;// å°†å•ä¾‹é€»è¾‘ç±»è®¾ç½®ä¸ºå‹å…ƒä¾¿äºå¤„ç†ï¼Œä¹Ÿå¯ä»¥å†å°è£…ä¸€ä¸ªæ¥å£ï¼Œéƒ½å¯ä»¥
 public:
 	HttpConnection(net::io_context& ioc);
 	void Start();
 	tcp::socket& GetSocket();
 
 private:
-	void CheckDeadline(); // ³¬Ê±¼ì²â
-	void WriteResponse(); // Ó¦´ğ
-	void HandleReq(); // ´¦ÀíÇëÇó£º½âÎöÇëÇóÍ·£¬½âÎö°üÌåÄÚÈİ
-	void PreParseGetParam();// ½âÎöurl
+	void CheckDeadline(); // è¶…æ—¶æ£€æµ‹
+	void WriteResponse(); // åº”ç­”
+	void HandleReq(); // å¤„ç†è¯·æ±‚ï¼šè§£æè¯·æ±‚å¤´ï¼Œè§£æåŒ…ä½“å†…å®¹
+	void PreParseGetParam();// è§£æurl
 
 private:
 	tcp::socket _socket;
-	beast::flat_buffer _buffer{ 8192 };// »º³åÇø
-	http::request<http::dynamic_body> _request;// ½âÎöÇëÇó
-	http::response<http::dynamic_body> _response;// »ØÓ¦¿Í»§¶Ë
-	//¶¨Ê±Æ÷£¬ÅĞ¶ÏÊÇ·ñ³¬Ê±
+	beast::flat_buffer _buffer{ 8192 };// ç¼“å†²åŒº
+	http::request<http::dynamic_body> _request;// è§£æè¯·æ±‚
+	http::response<http::dynamic_body> _response;// å›åº”å®¢æˆ·ç«¯
+	//å®šæ—¶å™¨ï¼Œåˆ¤æ–­æ˜¯å¦è¶…æ—¶
 	net::steady_timer _deadline{
 		_socket.get_executor(),std::chrono::seconds(60)
 	};

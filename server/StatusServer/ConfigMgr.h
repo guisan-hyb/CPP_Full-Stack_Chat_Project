@@ -54,5 +54,5 @@ private:
 	ConfigMgr& operator=(const ConfigMgr& src) = delete;
 
 private:
-	std::unordered_map<std::string, SectionInfo> _config_map;// Ã¿¸ösectionµÄÃû³Æ - ¸ÃsectionÏÂµÄËùÓĞ¼üÖµ¶Ô
+	std::unordered_map<std::string, SectionInfo> _config_map;// æ¯ä¸ªsectionçš„åç§° - è¯¥sectionä¸‹çš„æ‰€æœ‰é”®å€¼å¯¹
 };

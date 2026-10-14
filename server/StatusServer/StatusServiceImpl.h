@@ -50,7 +50,7 @@ private:
 	ChatServer getChatServer();
 
 private:
-	std::unordered_map<std::string, ChatServer> _servers; // Ò²¿ÉÒÔÓÃ¶ÑÊµÏÖ
+	std::unordered_map<std::string, ChatServer> _servers; // ä¹Ÿå¯ä»¥ç”¨å †å®ç°
 	std::mutex _server_mtx;
 };
 

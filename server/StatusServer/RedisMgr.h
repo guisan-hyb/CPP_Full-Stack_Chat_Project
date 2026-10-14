@@ -8,25 +8,25 @@ class RedisMgr : public Singleton<RedisMgr>
 public:
 	~RedisMgr();
 
-	// String ÀàĞÍ²Ù×÷
+	// String ç±»å‹æ“ä½œ
 	bool Get(const std::string& key, std::string& value);
 	bool Set(const std::string& key, const std::string& value);
 	bool Del(const std::string& key);
 	bool ExistsKey(const std::string& key);
 
-	// List ÀàĞÍ²Ù×÷
+	// List ç±»å‹æ“ä½œ
 	bool LPush(const std::string& key, const std::string& value);
 	bool LPop(const std::string& key, std::string& value);
 	bool RPush(const std::string& key, const std::string& value);
 	bool RPop(const std::string& key, std::string& value);
 
-	// Hash ÀàĞÍ²Ù×÷
+	// Hash ç±»å‹æ“ä½œ
 	bool HSet(const std::string& key, const std::string& hkey, const std::string& value);
 	bool HSet(const char* key, const char* hkey, const char* hvalue, size_t hvaluelen);
 	std::string HGet(const std::string& key, const std::string& hkey);
 	bool HDel(const std::string& key, const std::string& field);
 
-	// ·Ö²¼Ê½ËøÓë¼ÆÊıÆ÷ (²¹³äÊµÏÖ)
+	// åˆ†å¸ƒå¼é”ä¸è®¡æ•°å™¨ (è¡¥å……å®ç°)
 	/*std::string acquireLock(const std::string& lockName, int lockTimeout, int acquireTimeout);
 	bool releaseLock(const std::string& lockName, const std::string& identifier);
 
@@ -36,7 +36,7 @@ public:
 	void DelCount(std::string server_name);*/
 
 	void Close() {
-		// redis++ »á×Ô¶¯ÔÚÎö¹¹Ê±¹Ø±ÕÁ¬½Ó³Ø£¬ÕâÀï¿ÉÒÔÁô¿Õ£¬»òÕßÖ÷¶¯ reset
+		// redis++ ä¼šè‡ªåŠ¨åœ¨ææ„æ—¶å…³é—­è¿æ¥æ± ï¼Œè¿™é‡Œå¯ä»¥ç•™ç©ºï¼Œæˆ–è€…ä¸»åŠ¨ reset
 		// _redis.reset();
 	}
 

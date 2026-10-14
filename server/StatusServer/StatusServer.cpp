@@ -11,11 +11,11 @@ void RunServer() {
 	StatusServiceImpl service;
 
 	grpc::ServerBuilder builder;
-	// ¼àÌı¶Ë¿ÚºÍÌí¼Ó·şÎñ
+	// ç›‘å¬ç«¯å£å’Œæ·»åŠ æœåŠ¡
 	builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
 	builder.RegisterService(&service);
 
-	// ¹¹½¨²¢Æô¶¯gRPC·şÎñÆ÷
+	// æ„å»ºå¹¶å¯åŠ¨gRPCæœåŠ¡å™¨
 	std::unique_ptr<grpc::Server> server(builder.BuildAndStart());
 	std::cout << "Server listening on" << server_address << std::endl;
 
@@ -30,10 +30,10 @@ void RunServer() {
 		}
 	});
 
-	// ÔÚµ¥¶ÀµÄÏß³ÌÖĞÔËĞĞio_context
+	// åœ¨å•ç‹¬çš„çº¿ç¨‹ä¸­è¿è¡Œio_context
 	std::thread([&ioc]() {ioc.run(); }).detach();
 
-	// µÈ´ı·şÎñÆ÷¹Ø±Õ
+	// ç­‰å¾…æœåŠ¡å™¨å…³é—­
 	server->Wait();
 }
 

@@ -1,14 +1,14 @@
 #include "StatusServiceImpl.h"
-#include <boost/uuid/uuid.hpp>            // uuid ÀàµÄ¶¨Òå
-#include <boost/uuid/uuid_generators.hpp> // random_generator µÄ¶¨Òå
-#include <boost/uuid/uuid_io.hpp>        // Èç¹ûĞèÒª½« uuid ×ª³É×Ö·û´®Êä³ö£¬ĞèÒªÕâ¸ö
+#include <boost/uuid/uuid.hpp>            // uuid ç±»çš„å®šä¹‰
+#include <boost/uuid/uuid_generators.hpp> // random_generator çš„å®šä¹‰
+#include <boost/uuid/uuid_io.hpp>        // å¦‚æœéœ€è¦å°† uuid è½¬æˆå­—ç¬¦ä¸²è¾“å‡ºï¼Œéœ€è¦è¿™ä¸ª
 #include "ConfigMgr.h"
 #include "RedisMgr.h"
 
-// ¸¨Öúº¯Êı£ºÉú³ÉÎ¨Ò»token
+// è¾…åŠ©å‡½æ•°ï¼šç”Ÿæˆå”¯ä¸€token
 std::string generate_unique_string() {
-	boost::uuids::uuid uuid = boost::uuids::random_generator()(); // ´´½¨UUID¶ÔÏó
-	std::string unique_string = boost::uuids::to_string(uuid);// ½«UUID×ª»»Îª×Ö·û´®
+	boost::uuids::uuid uuid = boost::uuids::random_generator()(); // åˆ›å»ºUUIDå¯¹è±¡
+	std::string unique_string = boost::uuids::to_string(uuid);// å°†UUIDè½¬æ¢ä¸ºå­—ç¬¦ä¸²
 	return unique_string;
 }
 

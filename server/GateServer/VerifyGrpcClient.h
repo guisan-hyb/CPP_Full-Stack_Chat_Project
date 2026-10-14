@@ -5,9 +5,9 @@
 #include "Singleton.h"
 #include <message.grpc.pb.h>
 
-using grpc::Channel;// ¿Í»§¶ËÓë·şÎñÆ÷Ö®¼äµÄÍøÂçÁ¬½Ó³éÏó
-using grpc::Status;// RPC µ÷ÓÃ½áÊøºó£¬·şÎñÆ÷»á·µ»ØÕâ¸ö×´Ì¬¶ÔÏó
-using grpc::ClientContext;// ¿Í»§¶Ë·¢Æğµ÷ÓÃÊ±Ğ¯´ø¶îÍâµÄÔªÊı¾İ£¨Metadata£©£¬±ÈÈç³¬Ê±Ê±¼ä£¨set_deadline£©¡¢ÈÏÖ¤ Token£¨JWT£©µÈ¡£¿Í»§¶ËºÍ·şÎñ¶Ë¶¼¿ÉÒÔ¶ÁĞ´Ëü¡£
+using grpc::Channel;// å®¢æˆ·ç«¯ä¸æœåŠ¡å™¨ä¹‹é—´çš„ç½‘ç»œè¿æ¥æŠ½è±¡
+using grpc::Status;// RPC è°ƒç”¨ç»“æŸåï¼ŒæœåŠ¡å™¨ä¼šè¿”å›è¿™ä¸ªçŠ¶æ€å¯¹è±¡
+using grpc::ClientContext;// å®¢æˆ·ç«¯å‘èµ·è°ƒç”¨æ—¶æºå¸¦é¢å¤–çš„å…ƒæ•°æ®ï¼ˆMetadataï¼‰ï¼Œæ¯”å¦‚è¶…æ—¶æ—¶é—´ï¼ˆset_deadlineï¼‰ã€è®¤è¯ Tokenï¼ˆJWTï¼‰ç­‰ã€‚å®¢æˆ·ç«¯å’ŒæœåŠ¡ç«¯éƒ½å¯ä»¥è¯»å†™å®ƒã€‚
 
 using message::GetVerifyReq;
 using message::GetVerifyRsp;
@@ -24,7 +24,7 @@ public:
 	void ReturnConnection(std::unique_ptr<VerifyService::Stub> context);
 
 private:
-	std::atomic<bool> _b_stop;// ±ê¼ÇÊÇ·ñ»ØÊÕ
+	std::atomic<bool> _b_stop;// æ ‡è®°æ˜¯å¦å›æ”¶
 	std::size_t _pool_size;
 	std::string _host;
 	std::string _port;
@@ -39,7 +39,7 @@ class VerifyGrpcClient : public Singleton<VerifyGrpcClient>
 {
 	friend class Singleton<VerifyGrpcClient>;
 public:
-	// °Ñemail·¢¸ø¶Ô·½²¢»ñµÃ»Ø°ü
+	// æŠŠemailå‘ç»™å¯¹æ–¹å¹¶è·å¾—å›åŒ…
 	GetVerifyRsp GetVerifyCode(std::string email);
 
 private:

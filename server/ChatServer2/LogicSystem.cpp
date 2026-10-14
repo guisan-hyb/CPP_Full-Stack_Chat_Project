@@ -56,11 +56,11 @@ void LogicSystem::DealMsg()
 					iter->second(msg->_session, msg->_recvnode->GetMsgId(),
 						std::string(msg->_recvnode->_data, msg->_recvnode->_total_len));
 				}
-				catch (const json::exception& e) { // Óï·¨´íÎó/ÀàĞÍ´íÎó
+				catch (const json::exception& e) { // è¯­æ³•é”™è¯¯/ç±»å‹é”™è¯¯
 					std::cerr << "json exception in handler [" << msg->_recvnode->GetMsgId() << "]: "
 						<< e.what() << std::endl;
 				}
-				catch (const std::exception& e) { // ¶µµ×
+				catch (const std::exception& e) { // å…œåº•
 					std::cerr << "json exception in handler [" << msg->_recvnode->GetMsgId() << "]: "
 						<< e.what() << std::endl;
 				}
@@ -83,11 +83,11 @@ void LogicSystem::DealMsg()
 			iter->second(msg->_session, msg->_recvnode->GetMsgId(),
 				std::string(msg->_recvnode->_data, msg->_recvnode->_total_len));
 		}
-		catch (const json::exception& e) { // Óï·¨´íÎó/ÀàĞÍ´íÎó
+		catch (const json::exception& e) { // è¯­æ³•é”™è¯¯/ç±»å‹é”™è¯¯
 			std::cerr << "json exception in handler [" << msg->_recvnode->GetMsgId() << "]: "
 				<< e.what() << std::endl;
 		}
-		catch (const std::exception& e) { // ¶µµ×
+		catch (const std::exception& e) { // å…œåº•
 			std::cerr << "json exception in handler [" << msg->_recvnode->GetMsgId() << "]: " 
 				<< e.what() << std::endl;
 		}
@@ -99,7 +99,7 @@ void LogicSystem::DealMsg()
 void LogicSystem::RegisterCallBacks()
 {
 	_func_callbacks[MSG_CHAT_LOGIN] = [this](std::shared_ptr<CSession> sess, const short& msg_id, const std::string& msg_data) {
-		// Ìáµ½×îÇ°
+		// æåˆ°æœ€å‰
 		json root;
 		Defer defer([&root, this, sess] {
 			std::string jsonstr = root.dump();
@@ -115,19 +115,19 @@ void LogicSystem::RegisterCallBacks()
 			return;
 		}
 
-		// ÀàĞÍĞ£Ñé: ÖµÔÚ²»ÔÚ¡¢ÀàĞÍ¶Ô²»¶Ô,¶¼ÏÔÊ½ÅĞµô
+		// ç±»å‹æ ¡éªŒ: å€¼åœ¨ä¸åœ¨ã€ç±»å‹å¯¹ä¸å¯¹,éƒ½æ˜¾å¼åˆ¤æ‰
 		if (!src_root.is_object() ||
 			!src_root.contains("uid") || !src_root["uid"].is_number_integer() ||
 			!src_root.contains("token") || !src_root["token"].is_string()) {
 			std::cerr << "login payload invalid: " << msg_data << std::endl;
-			return;                                          // »Ø {"error":1001}
+			return;                                          // å› {"error":1001}
 		}
 
 		int uid = src_root["uid"].get<int>();
 		std::string token = src_root["token"].get<std::string>();
 		if (uid <= 0 || token.empty()) { root["error"] = ErrorCodes::Uid_Invalid; return; }
 
-		// ´Óredis »ñÈ¡ÓÃ»§tokenÊÇ·ñÕıÈ· (°ÑÔ­À´´Ó×´Ì¬·şÎñÆ÷»ñÈ¡tokenÆ¥ÅäÊÇ·ñ×¼È·¸ÄÁË)
+		// ä»redis è·å–ç”¨æˆ·tokenæ˜¯å¦æ­£ç¡® (æŠŠåŸæ¥ä»çŠ¶æ€æœåŠ¡å™¨è·å–tokenåŒ¹é…æ˜¯å¦å‡†ç¡®æ”¹äº†)
 		std::string uid_str = std::to_string(uid);
 		std::string token_key = std::string(USERTOKENPREFIX) + uid_str;
 		std::string token_value = "";
@@ -144,7 +144,7 @@ void LogicSystem::RegisterCallBacks()
 
 		root["error"] = ErrorCodes::Success;
 
-		// ÕâÀïÍ¬ÑùÒ²Ã»±ØÒª´ÓÄÚ´æÖĞ²éÕÒÓÃ»§ĞÅÏ¢ÁË, ÔÚredis+mysqlÖĞ²éÑ¯¼´¿É
+		// è¿™é‡ŒåŒæ ·ä¹Ÿæ²¡å¿…è¦ä»å†…å­˜ä¸­æŸ¥æ‰¾ç”¨æˆ·ä¿¡æ¯äº†, åœ¨redis+mysqlä¸­æŸ¥è¯¢å³å¯
 		std::string base_key = std::string(USER_BASE_INFO) + uid_str;
 		auto user_info = std::make_shared<UserInfo>();
 		bool b_base = GetBaseInfo(base_key, uid, user_info);
@@ -163,16 +163,16 @@ void LogicSystem::RegisterCallBacks()
 		root["icon"] = user_info->icon;
 		root["token"] = token;
 
-		// ´ÓÊı¾İ¿â»ñÈ¡ÉêÇëÁĞ±í (Ö»»ñÈ¡Ò»´Î¾ÍĞĞ, ÉêÇëÁĞ±í»á±£´æÔÚ¿Í»§¶Ë±¾µØ, Ö»Í¬²½Ò»Ğ©´ıÉêÇëµÄ¼´¿É)
+		// ä»æ•°æ®åº“è·å–ç”³è¯·åˆ—è¡¨ (åªè·å–ä¸€æ¬¡å°±è¡Œ, ç”³è¯·åˆ—è¡¨ä¼šä¿å­˜åœ¨å®¢æˆ·ç«¯æœ¬åœ°, åªåŒæ­¥ä¸€äº›å¾…ç”³è¯·çš„å³å¯)
 
-		// »ñÈ¡ºÃÓÑÁĞ±í
+		// è·å–å¥½å‹åˆ—è¡¨
 
 
-		// ´¦Àí¸ÃĞÂÁ¬½Ó£º
+		// å¤„ç†è¯¥æ–°è¿æ¥ï¼š
 		auto server_name = ConfigMgr::GetInst()["SelfServer"]["Name"];
-		// ½«µÇÂ½ÊıÁ¿Ôö¼Ó
+		// å°†ç™»é™†æ•°é‡å¢åŠ 
 		auto rd_res = RedisMgr::GetInst()->HGet(std::string(LOGIN_COUNT), server_name);
-		int conn_count = 0;// Ä¬ÈÏÁ¬½ÓÊıÎª0
+		int conn_count = 0;// é»˜è®¤è¿æ¥æ•°ä¸º0
 		if (!rd_res.empty()) {
 			conn_count = std::stoi(rd_res);
 		}
@@ -182,14 +182,14 @@ void LogicSystem::RegisterCallBacks()
 		RedisMgr::GetInst()->HSet(std::string(LOGIN_COUNT), server_name, conn_str);
 
 
-		// session°ó¶¨ÓÃ»§id
+		// sessionç»‘å®šç”¨æˆ·id
 		sess->SetUserId(uid);
 
-		// ÎªÓÃ»§ÉèÖÃµÇÂ¼ ip server µÄÃû×Ö
+		// ä¸ºç”¨æˆ·è®¾ç½®ç™»å½• ip server çš„åå­—
 		std::string ip_key = std::string(USERIPPREFIX) + uid_str;
 		RedisMgr::GetInst()->Set(ip_key, server_name);
 
-		// uid ºÍ session °ó¶¨¹ÜÀí, ·½±ãÒÔºóÌßÈË²Ù×÷
+		// uid å’Œ session ç»‘å®šç®¡ç†, æ–¹ä¾¿ä»¥åè¸¢äººæ“ä½œ
 		UserMgr::GetInst()->SetUserSession(uid, sess);
 
 		return;

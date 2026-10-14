@@ -4,19 +4,19 @@
 
 enum ErrorCodes {
 	Success = 0,
-	Error_Json = 1001, // json½âÎö´íÎó
-	RPC_Failed = 1002, // RPCÇëÇó´íÎó
-	Verify_Expired = 1003, // ÑéÖ¤Âë¹ýÆÚ
-	Verify_Code_Error = 1004, // ÑéÖ¤Âë´íÎó
-	User_Exist = 1005, // ÓÃ»§ÒÑ¾­´æÔÚ
-	Passwd_Error = 1006, // ÃÜÂë´íÎó
-	Email_Not_Match = 1007, // ÓÊÏä²»Æ¥Åä
-	Passwd_Up_Failed = 1008, // ¸üÐÂÃÜÂëÊ§°Ü
-	Passwd_Invalid = 1009, // ÃÜÂëÎÞÐ§
-	Token_Invalid = 1010, // TokenÎÞÐ§
-	Uid_Invalid = 1011, // uidÎÞÐ§
-	CREATE_CHAT_FAILED = 1012, //´´½¨ÁÄÌìÊ§°Ü
-	LOAD_CHAT_FAILED = 1013, //¼ÓÔØÁÄÌìÊ§°Ü
+	Error_Json = 1001, // jsonè§£æžé”™è¯¯
+	RPC_Failed = 1002, // RPCè¯·æ±‚é”™è¯¯
+	Verify_Expired = 1003, // éªŒè¯ç è¿‡æœŸ
+	Verify_Code_Error = 1004, // éªŒè¯ç é”™è¯¯
+	User_Exist = 1005, // ç”¨æˆ·å·²ç»å­˜åœ¨
+	Passwd_Error = 1006, // å¯†ç é”™è¯¯
+	Email_Not_Match = 1007, // é‚®ç®±ä¸åŒ¹é…
+	Passwd_Up_Failed = 1008, // æ›´æ–°å¯†ç å¤±è´¥
+	Passwd_Invalid = 1009, // å¯†ç æ— æ•ˆ
+	Token_Invalid = 1010, // Tokenæ— æ•ˆ
+	Uid_Invalid = 1011, // uidæ— æ•ˆ
+	CREATE_CHAT_FAILED = 1012, //åˆ›å»ºèŠå¤©å¤±è´¥
+	LOAD_CHAT_FAILED = 1013, //åŠ è½½èŠå¤©å¤±è´¥
 };
 
 
@@ -34,40 +34,40 @@ private:
 
 
 #define MAX_LENGTH  1024*2
-//Í·²¿×Ü³¤¶È
+//å¤´éƒ¨æ€»é•¿åº¦
 #define HEAD_TOTAL_LEN 4
-//Í·²¿id³¤¶È
+//å¤´éƒ¨idé•¿åº¦
 #define HEAD_ID_LEN 2
-//Í·²¿Êý¾Ý³¤¶È
+//å¤´éƒ¨æ•°æ®é•¿åº¦
 #define HEAD_DATA_LEN 2
 #define MAX_RECVQUE  10000
 #define MAX_SENDQUE 1000
 
 
 enum MSG_IDS {
-	MSG_CHAT_LOGIN = 1005, //ÓÃ»§µÇÂ½
-	MSG_CHAT_LOGIN_RSP = 1006, //ÓÃ»§µÇÂ½»Ø°ü
-	ID_SEARCH_USER_REQ = 1007, //ÓÃ»§ËÑË÷ÇëÇó
-	ID_SEARCH_USER_RSP = 1008, //ËÑË÷ÓÃ»§»Ø°ü
-	ID_ADD_FRIEND_REQ = 1009, //ÉêÇëÌí¼ÓºÃÓÑÇëÇó
-	ID_ADD_FRIEND_RSP = 1010, //ÉêÇëÌí¼ÓºÃÓÑ»Ø¸´
-	ID_NOTIFY_ADD_FRIEND_REQ = 1011,  //Í¨ÖªÓÃ»§Ìí¼ÓºÃÓÑÉêÇë
-	ID_AUTH_FRIEND_REQ = 1013,  //ÈÏÖ¤ºÃÓÑÇëÇó
-	ID_AUTH_FRIEND_RSP = 1014,  //ÈÏÖ¤ºÃÓÑ»Ø¸´
-	ID_NOTIFY_AUTH_FRIEND_REQ = 1015, //Í¨ÖªÓÃ»§ÈÏÖ¤ºÃÓÑÉêÇë
-	ID_TEXT_CHAT_MSG_REQ = 1017, //ÎÄ±¾ÁÄÌìÐÅÏ¢ÇëÇó
-	ID_TEXT_CHAT_MSG_RSP = 1018, //ÎÄ±¾ÁÄÌìÐÅÏ¢»Ø¸´
-	ID_NOTIFY_TEXT_CHAT_MSG_REQ = 1019, //Í¨ÖªÓÃ»§ÎÄ±¾ÁÄÌìÐÅÏ¢
-	ID_NOTIFY_OFF_LINE_REQ = 1021, //Í¨ÖªÓÃ»§ÏÂÏß
-	ID_HEART_BEAT_REQ = 1023,      //ÐÄÌøÇëÇó
-	ID_HEARTBEAT_RSP = 1024,       //ÐÄÌø»Ø¸´
-	ID_LOAD_CHAT_THREAD_REQ = 1025, //¼ÓÔØÁÄÌìÏß³ÌÇëÇó
-	ID_LOAD_CHAT_THREAD_RSP = 1026, //¼ÓÔØÁÄÌìÏß³Ì»Ø¸´
-	ID_CREATE_PRIVATE_CHAT_REQ = 1027, //´´½¨Ë½ÁÄÇëÇó
-	ID_CREATE_PRIVATE_CHAT_RSP = 1028, //´´½¨Ë½ÁÄ»Ø¸´
+	MSG_CHAT_LOGIN = 1005, //ç”¨æˆ·ç™»é™†
+	MSG_CHAT_LOGIN_RSP = 1006, //ç”¨æˆ·ç™»é™†å›žåŒ…
+	ID_SEARCH_USER_REQ = 1007, //ç”¨æˆ·æœç´¢è¯·æ±‚
+	ID_SEARCH_USER_RSP = 1008, //æœç´¢ç”¨æˆ·å›žåŒ…
+	ID_ADD_FRIEND_REQ = 1009, //ç”³è¯·æ·»åŠ å¥½å‹è¯·æ±‚
+	ID_ADD_FRIEND_RSP = 1010, //ç”³è¯·æ·»åŠ å¥½å‹å›žå¤
+	ID_NOTIFY_ADD_FRIEND_REQ = 1011,  //é€šçŸ¥ç”¨æˆ·æ·»åŠ å¥½å‹ç”³è¯·
+	ID_AUTH_FRIEND_REQ = 1013,  //è®¤è¯å¥½å‹è¯·æ±‚
+	ID_AUTH_FRIEND_RSP = 1014,  //è®¤è¯å¥½å‹å›žå¤
+	ID_NOTIFY_AUTH_FRIEND_REQ = 1015, //é€šçŸ¥ç”¨æˆ·è®¤è¯å¥½å‹ç”³è¯·
+	ID_TEXT_CHAT_MSG_REQ = 1017, //æ–‡æœ¬èŠå¤©ä¿¡æ¯è¯·æ±‚
+	ID_TEXT_CHAT_MSG_RSP = 1018, //æ–‡æœ¬èŠå¤©ä¿¡æ¯å›žå¤
+	ID_NOTIFY_TEXT_CHAT_MSG_REQ = 1019, //é€šçŸ¥ç”¨æˆ·æ–‡æœ¬èŠå¤©ä¿¡æ¯
+	ID_NOTIFY_OFF_LINE_REQ = 1021, //é€šçŸ¥ç”¨æˆ·ä¸‹çº¿
+	ID_HEART_BEAT_REQ = 1023,      //å¿ƒè·³è¯·æ±‚
+	ID_HEARTBEAT_RSP = 1024,       //å¿ƒè·³å›žå¤
+	ID_LOAD_CHAT_THREAD_REQ = 1025, //åŠ è½½èŠå¤©çº¿ç¨‹è¯·æ±‚
+	ID_LOAD_CHAT_THREAD_RSP = 1026, //åŠ è½½èŠå¤©çº¿ç¨‹å›žå¤
+	ID_CREATE_PRIVATE_CHAT_REQ = 1027, //åˆ›å»ºç§èŠè¯·æ±‚
+	ID_CREATE_PRIVATE_CHAT_RSP = 1028, //åˆ›å»ºç§èŠå›žå¤
 
-	ID_LOAD_CHAT_MSG_REQ = 1029,      //¼ÓÔØÁÄÌìÏûÏ¢
-	ID_LOAD_CHAT_MSG_RSP = 1030,      //¼ÓÔØÁÄÌìÏûÏ¢
+	ID_LOAD_CHAT_MSG_REQ = 1029,      //åŠ è½½èŠå¤©æ¶ˆæ¯
+	ID_LOAD_CHAT_MSG_RSP = 1030,      //åŠ è½½èŠå¤©æ¶ˆæ¯
 };
 
 #define USERIPPREFIX  "uip_"
@@ -80,9 +80,9 @@ enum MSG_IDS {
 #define USER_SESSION_PREFIX "usession_"
 #define LOCK_COUNT "lockcount"
 
-//·Ö²¼Ê½ËøµÄ³ÖÓÐÊ±¼ä
+//åˆ†å¸ƒå¼é”çš„æŒæœ‰æ—¶é—´
 #define LOCK_TIME_OUT 10
-//·Ö²¼Ê½ËøµÄÖØÊÔÊ±¼ä
+//åˆ†å¸ƒå¼é”çš„é‡è¯•æ—¶é—´
 #define ACQUIRE_TIME_OUT 5
 
 

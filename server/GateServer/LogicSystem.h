@@ -10,17 +10,17 @@ class LogicSystem : public Singleton<LogicSystem>
 	friend class Singleton<LogicSystem>;
 public:
 	~LogicSystem();
-	bool HandleGet(std::string path, std::shared_ptr<HttpConnection> connection);// ´¦ÀíGetÇëÇó
-	void RegGet(std::string path, HttpHandler handler);// ×¢²áGetÇëÇó
+	bool HandleGet(std::string path, std::shared_ptr<HttpConnection> connection);// å¤„ç†Getè¯·æ±‚
+	void RegGet(std::string path, HttpHandler handler);// æ³¨å†ŒGetè¯·æ±‚
 
-	void RegPost(std::string path, HttpHandler handler);// ×¢²áPostÇëÇó
-	bool HandlePost(std::string path, std::shared_ptr<HttpConnection> connection);// ´¦ÀíPostÇëÇó
+	void RegPost(std::string path, HttpHandler handler);// æ³¨å†ŒPostè¯·æ±‚
+	bool HandlePost(std::string path, std::shared_ptr<HttpConnection> connection);// å¤„ç†Postè¯·æ±‚
 
 private:
 	LogicSystem();
 	
 private:
-	std::unordered_map<std::string, HttpHandler> _post_handlers;// post´¦ÀíÇëÇóµÄ¼¯ºÏ
-	std::unordered_map<std::string, HttpHandler> _get_handlers;// get´¦ÀíÇëÇóµÄ¼¯ºÏ
+	std::unordered_map<std::string, HttpHandler> _post_handlers;// postå¤„ç†è¯·æ±‚çš„é›†åˆ
+	std::unordered_map<std::string, HttpHandler> _get_handlers;// getå¤„ç†è¯·æ±‚çš„é›†åˆ
 };
 

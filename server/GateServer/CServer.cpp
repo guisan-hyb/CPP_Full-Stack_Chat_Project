@@ -14,15 +14,15 @@ void CServer::Start()
 	std::shared_ptr<HttpConnection> new_connection = std::make_shared<HttpConnection>(io_context);
 	_acceptor.async_accept(new_connection->GetSocket(), [self, new_connection](beast::error_code ec) {
 		try {
-			// 出错则放弃这条连接，继续监听其他链接
+			// 鍑洪敊鍒欐斁寮冭繖鏉¤繛鎺ワ紝缁х画鐩戝惉鍏朵粬閾炬帴
 			if (ec) {
 				self->Start();
 				return;
 			}
 
-			new_connection->Start();// 启动链接
+			new_connection->Start();// 鍚姩閾炬帴
 
-			// 继续监听
+			// 缁х画鐩戝惉
 			self->Start();
 		}
 		catch (std::exception& e) {

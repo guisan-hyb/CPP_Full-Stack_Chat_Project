@@ -166,7 +166,7 @@ bool RedisMgr::HSet(const std::string& key, const std::string& hkey, const std::
 	}
 }
 
-// 支持 char* 和长度，用于存二进制数据
+// 鏀寔 char* 鍜岄暱搴︼紝鐢ㄤ簬瀛樹簩杩涘埗鏁版嵁
 bool RedisMgr::HSet(const char* key, const char* hkey, const char* hvalue, size_t hvaluelen)
 {
 	try {

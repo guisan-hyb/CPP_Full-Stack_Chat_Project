@@ -1,6 +1,6 @@
 # server/ChatServer2/CMakeLists.txt
 
-# 1.ÉùÃ÷Ô´ÎÄ¼þ
+# 1.å£°æ˜Žæºæ–‡ä»¶
 set(CHAT_SERVER2_SOURCES
 	ChatServer.cpp
     ConfigMgr.cpp
@@ -18,31 +18,31 @@ set(CHAT_SERVER2_SOURCES
     ChatServiceImpl.cpp
 )
 
-# 2.Éú³É¿ÉÖ´ÐÐÎÄ¼þ
+# 2.ç”Ÿæˆå¯æ‰§è¡Œæ–‡ä»¶
 add_executable(ChatServer2 ${CHAT_SERVER2_SOURCES})
 
-# È·±£ÎÞÂÛÒÀÀµ´«µÝÊÇ·ñÉúÐ§£¬±àÒëÆ÷¶¼ÄÜÕÒµ½ proto Í·ÎÄ¼þ
+# ç¡®ä¿æ— è®ºä¾èµ–ä¼ é€’æ˜¯å¦ç”Ÿæ•ˆï¼Œç¼–è¯‘å™¨éƒ½èƒ½æ‰¾åˆ° proto å¤´æ–‡ä»¶
 target_link_directories(ChatServer2 PRIVATE ${CMAKE_BINARY_DIR}/generated)
 
-# 3.Á´½Ó¿âÎÄ¼þ
+# 3.é“¾æŽ¥åº“æ–‡ä»¶
 target_link_libraries(ChatServer2
 	gRPC::grpc++
     protobuf::libprotobuf
     Boost::asio
     Boost::boost
     nlohmann_json::nlohmann_json
-    chat_proto # ×Ô¼ºÉú³ÉµÄchat_proto ¿â -> message.proto
-    redis++::redis++   # <-- ¼ÓÉÏ Redis
+    chat_proto # è‡ªå·±ç”Ÿæˆçš„chat_proto åº“ -> message.proto
+    redis++::redis++   # <-- åŠ ä¸Š Redis
     unofficial::mysql-connector-cpp::connector
 )
 
 # ==========================================
-# ×Ô¶¯¿½±´ÅäÖÃÎÄ¼þµ½ÔËÐÐÄ¿Â¼
+# è‡ªåŠ¨æ‹·è´é…ç½®æ–‡ä»¶åˆ°è¿è¡Œç›®å½•
 # ==========================================
-# 1. ¶¨ÒåÅäÖÃÎÄ¼þµÄÔ´Â·¾¶ (config.ini ·ÅÔÚ ChatServer Ä¿Â¼ÏÂ)
+# 1. å®šä¹‰é…ç½®æ–‡ä»¶çš„æºè·¯å¾„ (config.ini æ”¾åœ¨ ChatServer ç›®å½•ä¸‹)
 set(CONFIG_FILE ${CMAKE_CURRENT_SOURCE_DIR}/config.ini)
 
-# 2. Ìí¼Ó×Ô¶¨ÒåÃüÁî£ºÔÚ±àÒë ChatServer2 Ö®ºó£¬½« config.ini ¿½±´µ½ .exe ËùÔÚÄ¿Â¼
+# 2. æ·»åŠ è‡ªå®šä¹‰å‘½ä»¤ï¼šåœ¨ç¼–è¯‘ ChatServer2 ä¹‹åŽï¼Œå°† config.ini æ‹·è´åˆ° .exe æ‰€åœ¨ç›®å½•
 add_custom_command(TARGET ChatServer2 POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
     ${CONFIG_FILE}

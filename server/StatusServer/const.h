@@ -36,17 +36,17 @@ using json = nlohmann::json;
 
 enum ErrorCodes {
 	Success = 0,
-	Error_Json = 1001, // json½âÎö´íÎó
-	RPC_Failed = 1002, // RPCÇëÇó´íÎó
-	Verify_Expired = 1003, // ÑéÖ¤Âë¹ıÆÚ
-	Verify_Code_Error = 1004, // ÑéÖ¤Âë´íÎó
-	User_Exist = 1005, // ÓÃ»§ÒÑ¾­´æÔÚ
-	Passwd_Error = 1006, // ÃÜÂë´íÎó
-	Email_Not_Match = 1007, // ÓÊÏä²»Æ¥Åä
-	Passwd_Up_Failed = 1008, // ¸üĞÂÃÜÂëÊ§°Ü
-	Passwd_Invalid = 1009, // ÃÜÂëÎŞĞ§
-	Token_Invalid = 1010, // TokenÎŞĞ§
-	Uid_Invalid = 1011, // uidÎŞĞ§
+	Error_Json = 1001, // jsonè§£æé”™è¯¯
+	RPC_Failed = 1002, // RPCè¯·æ±‚é”™è¯¯
+	Verify_Expired = 1003, // éªŒè¯ç è¿‡æœŸ
+	Verify_Code_Error = 1004, // éªŒè¯ç é”™è¯¯
+	User_Exist = 1005, // ç”¨æˆ·å·²ç»å­˜åœ¨
+	Passwd_Error = 1006, // å¯†ç é”™è¯¯
+	Email_Not_Match = 1007, // é‚®ç®±ä¸åŒ¹é…
+	Passwd_Up_Failed = 1008, // æ›´æ–°å¯†ç å¤±è´¥
+	Passwd_Invalid = 1009, // å¯†ç æ— æ•ˆ
+	Token_Invalid = 1010, // Tokenæ— æ•ˆ
+	Uid_Invalid = 1011, // uidæ— æ•ˆ
 };
 
 
