@@ -34,11 +34,11 @@ private:
 
 public slots:
     void slot_tcp_connect(ServerInfo); // 与login_dialog中的信号相连
-    void slot_send_data(ReqId reqId, QString data);
+    void slot_send_data(ReqId reqId, QByteArray data);
 
 signals:
     void sig_conn_success(bool b_success);
-    void sig_send_data(ReqId reqId, QString data);
+    void sig_send_data(ReqId reqId, QByteArray data);
     void sig_switch_chatDlg();
     void sig_login_failed(int);
     void sig_login_timeout(); // 聊天登录长时间收不到回包

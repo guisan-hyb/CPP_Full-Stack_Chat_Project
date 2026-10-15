@@ -1,14 +1,13 @@
 #include "LogicSystem.h"
 #include <iostream>
 #include "const.h"
-#include <nlohmann/json.hpp>
 #include "StatusGrpcClient.h"
 #include "MysqlMgr.h"
 #include "RedisMgr.h"
 #include "ConfigMgr.h"
 #include "UserMgr.h"
 
-using json = nlohmann::json;
+
 
 LogicSystem::LogicSystem()
 	: _b_stop(false)
@@ -194,6 +193,46 @@ void LogicSystem::RegisterCallBacks()
 
 		return;
 	};
+
+	_func_callbacks[ID_SEARCH_USER_REQ] = [this](std::shared_ptr<CSession> sess, const short& msg_id, const std::string& msg_data) {
+		json root;
+		Defer defer([sess, &root, this] {
+			std::string jsonstr = root.dump();
+			sess->Send(jsonstr, ID_SEARCH_USER_RSP);
+		});
+
+		json src_root;
+		try {
+			src_root = json::parse(msg_data);
+		}
+		catch (const json::exception& e) {
+			std::cerr << "search user parse json error: " << e.what() << std::endl;
+			root["error"] = ErrorCodes::Error_Json;// 解析失败也要回包, 否则客户端会一直等下去
+			return;
+		}
+
+		if (!src_root.is_object() ||
+			!src_root.contains("uid") || !src_root["uid"].is_string()) {
+			std::cerr << "search user payload error: " << msg_data << std::endl;
+			root["error"] = ErrorCodes::Error_Json;
+			return;
+		}
+
+		std::string uid_str = src_root["uid"].get<std::string>();// 客户端传来的可能是uid, 也可能是用户名称
+		if (uid_str.empty()) {
+			std::cerr << "search user: empty uid/name" << std::endl;
+			root["error"] = ErrorCodes::Uid_Invalid;
+			return;
+		}
+
+		bool b_digit = isPureDigit(uid_str);
+		if (b_digit) {
+			GetUserByUid(uid_str, root);
+		}
+		else {
+			GetUserByName(uid_str, root);
+		}
+	};
 }
 
 
@@ -255,6 +294,163 @@ bool LogicSystem::GetBaseInfo(const std::string& base_key, int uid, std::shared_
 	redis_root["icon"] = user_info->icon;
 	RedisMgr::GetInst()->Set(base_key, redis_root.dump());
 
+	return true;
+}
+
+void LogicSystem::GetUserByUid(const std::string& uid_str, json& root) {
+	root["error"] = ErrorCodes::Success;
+	std::string base_key = std::string(USER_BASE_INFO) + uid_str;
+
+	std::string info_str = "";
+	if (RedisMgr::GetInst()->Get(base_key, info_str) && !info_str.empty()) {
+		try {
+			auto src_root = json::parse(info_str);
+			auto uid = std::stoi(uid_str);
+			auto name = src_root.value("name", std::string());
+			auto pwd = src_root.value("pwd", std::string());
+			auto email = src_root.value("email", std::string());
+			auto nick = src_root.value("nick", std::string());
+			auto desc = src_root.value("desc", std::string());
+			auto sex = src_root.value("sex", 0);
+			auto icon = src_root.value("icon", std::string());
+
+			std::cout << "user  uid is  " << uid << " name  is "
+				<< name << " pwd is " << pwd << " email is " << email << " icon is " << icon << std::endl;
+
+			if (!name.empty() || !email.empty()) {
+				root["uid"] = uid;
+				root["name"] = name;
+				root["pwd"] = pwd;
+				root["email"] = email;
+				root["nick"] = nick;
+				root["desc"] = desc;
+				root["sex"] = sex;
+				root["icon"] = icon;
+
+				return;
+			}
+			
+			std::cerr << "empty user info in redis, fallback to mysql, uid: " << uid << std::endl;
+		}
+		catch (const json::exception& e) {
+			std::cerr << "info_str parse error: " << e.what() << std::endl;
+		}
+	}
+
+	// 查 mysql
+	int uid = std::stoi(uid_str);
+	auto user_info_from_mysql = MysqlMgr::GetInst()->GetUser(uid);
+	if (user_info_from_mysql == nullptr ||
+		(user_info_from_mysql->name.empty() && user_info_from_mysql->email.empty())) {
+		// 用户不存在时必须带上错误码, 否则客户端会把空用户当成"查到了"
+		std::cerr << "user not found, uid: " << uid << std::endl;
+		root["error"] = ErrorCodes::Uid_Invalid;
+		return;
+	}
+
+	json redis_root;
+	redis_root["uid"] = uid;
+	redis_root["pwd"] = user_info_from_mysql->pwd;
+	redis_root["name"] = user_info_from_mysql->name;
+	redis_root["email"] = user_info_from_mysql->email;
+	redis_root["nick"] = user_info_from_mysql->nick;
+	redis_root["desc"] = user_info_from_mysql->desc;
+	redis_root["sex"] = user_info_from_mysql->sex;
+	redis_root["icon"] = user_info_from_mysql->icon;
+
+	RedisMgr::GetInst()->Set(base_key, redis_root.dump());
+
+
+	root["uid"] = uid;
+	root["pwd"] = user_info_from_mysql->pwd;
+	root["name"] = user_info_from_mysql->name;
+	root["email"] = user_info_from_mysql->email;
+	root["nick"] = user_info_from_mysql->nick;
+	root["desc"] = user_info_from_mysql->desc;
+	root["sex"] = user_info_from_mysql->sex;
+	root["icon"] = user_info_from_mysql->icon;
+}
+
+void LogicSystem::GetUserByName(const std::string& name, json& root) {
+	root["error"] = ErrorCodes::Success;
+	std::string base_key = std::string(NAME_INFO) + name;
+
+	std::string info_str = "";
+	if (RedisMgr::GetInst()->Get(base_key, info_str) && !info_str.empty()) {
+		try {
+			auto src_root = json::parse(info_str);
+			auto uid = src_root.value("uid", 0);
+			auto name = src_root.value("name", std::string());
+			auto pwd = src_root.value("pwd", std::string());
+			auto email = src_root.value("email", std::string());
+			auto nick = src_root.value("nick", std::string());
+			auto desc = src_root.value("desc", std::string());
+			auto sex = src_root.value("sex", 0);
+			auto icon = src_root.value("icon", std::string());
+
+			std::cout << "user  uid is  " << uid << " name  is "
+				<< name << " pwd is " << pwd << " email is " << email << " icon is " << icon << std::endl;
+
+			if (!name.empty() || !email.empty()) {
+				root["uid"] = uid;
+				root["name"] = name;
+				root["pwd"] = pwd;
+				root["email"] = email;
+				root["nick"] = nick;
+				root["desc"] = desc;
+				root["sex"] = sex;
+				root["icon"] = icon;
+
+				return;
+			}
+
+			std::cerr << "empty user info in redis, fallback to mysql, uid: " << uid << std::endl;
+		}
+		catch (const json::exception& e) {
+			std::cerr << "info_str parse error: " << e.what() << std::endl;
+		}
+	}
+
+	// 查 mysql
+	auto user_info_from_mysql = MysqlMgr::GetInst()->GetUser(name);
+	if (user_info_from_mysql == nullptr ||
+		(user_info_from_mysql->name.empty() && user_info_from_mysql->email.empty())) {
+		// 用户不存在时必须带上错误码, 否则客户端会把空用户当成"查到了"
+		std::cerr << "user not found, name: " << name << std::endl;
+		root["error"] = ErrorCodes::Uid_Invalid;
+		return;
+	}
+
+	json redis_root;
+	redis_root["uid"] = user_info_from_mysql->uid;
+	redis_root["pwd"] = user_info_from_mysql->pwd;
+	redis_root["name"] = user_info_from_mysql->name;
+	redis_root["email"] = user_info_from_mysql->email;
+	redis_root["nick"] = user_info_from_mysql->nick;
+	redis_root["desc"] = user_info_from_mysql->desc;
+	redis_root["sex"] = user_info_from_mysql->sex;
+	redis_root["icon"] = user_info_from_mysql->icon;
+
+	RedisMgr::GetInst()->Set(base_key, redis_root.dump());
+
+
+	root["uid"] = user_info_from_mysql->uid;
+	root["pwd"] = user_info_from_mysql->pwd;
+	root["name"] = user_info_from_mysql->name;
+	root["email"] = user_info_from_mysql->email;
+	root["nick"] = user_info_from_mysql->nick;
+	root["desc"] = user_info_from_mysql->desc;
+	root["sex"] = user_info_from_mysql->sex;
+	root["icon"] = user_info_from_mysql->icon;
+}
+
+
+bool LogicSystem::isPureDigit(const std::string& s) {
+	// 空串和超长数字都不当作 uid, 避免 std::stoi 抛异常(异常会让这次请求没有任何回包)
+	if (s.empty() || s.size() > 9) return false;
+	for (char ch : s) {
+		if (!isdigit(static_cast<unsigned char>(ch))) return false;
+	}
 	return true;
 }
 

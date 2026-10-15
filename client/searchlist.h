@@ -6,6 +6,7 @@
 #include <QScrollBar>
 #include <QDebug>
 #include <QDialog>
+#include <QTimer>
 #include <memory>
 #include "userdata.h"
 #include "loadingdialog.h"
@@ -51,9 +52,11 @@ private:
     std::shared_ptr<QDialog> _find_dlg;
     QWidget* _search_edit;
     LoadingDialog * _loadingDialog;
+    QTimer * _search_timer; // 搜索超时保护，避免服务端不回包时一直转圈
 private slots:
     void slot_item_clicked(QListWidgetItem *item);
     void slot_user_search(std::shared_ptr<SearchInfo> si);
+    void slot_search_timeout();
 signals:
 
 };

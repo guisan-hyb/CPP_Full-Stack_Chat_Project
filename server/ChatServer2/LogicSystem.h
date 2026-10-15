@@ -8,10 +8,12 @@
 #include <mutex>
 #include <functional>
 #include <condition_variable>
+#include <nlohmann/json.hpp>
 #include "data.h"
 
 using FuncCallBack = std::function<void(std::shared_ptr<CSession>, const short& msg_id, const std::string& msg_data)>;
 
+using json = nlohmann::json;
 
 class LogicSystem : public Singleton<LogicSystem>
 {
@@ -25,6 +27,9 @@ private:
 	void DealMsg();
 	void RegisterCallBacks();
 	bool GetBaseInfo(const std::string& base_key, int uid, std::shared_ptr<UserInfo>& user_info);
+	void GetUserByUid(const std::string& uid_str, json& root);
+	void GetUserByName(const std::string& name, json& root);
+	bool isPureDigit(const std::string& s);
 
 private:
 	std::thread _work_thread;

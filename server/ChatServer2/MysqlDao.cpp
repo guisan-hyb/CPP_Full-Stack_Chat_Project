@@ -136,17 +136,27 @@ std::shared_ptr<UserInfo> MysqlDao::GetUser(int uid)
 {
 	try {
 		mysqlx::Session sess = _pool->getConnection();
-		auto res = sess.sql("SELECT uid, name, email, pwd FROM user WHERE uid = ?")
+		// 注意: 这里的 FROM user 不能少, 少了就是语法错误, 查 uid 永远失败
+		auto res = sess.sql("SELECT * FROM user WHERE uid = ?")
 			.bind(uid)
 			.execute();
 
 		auto row = res.fetchOne();
+		// 没有这个用户时, fetchOne 返回的是空行, 直接返回空指针, 由调用方决定怎么回包
+		if (!row) {
+			return nullptr;
+		}
+
 		std::shared_ptr<UserInfo> user_info = std::make_shared<UserInfo>();
 		
-		user_info->uid = uid;
-		user_info->pwd = row[3].isNull() ? "" : row[3].get<std::string>();
-		user_info->name = row[1].isNull() ? "" : row[1].get<std::string>();
-		user_info->email = row[2].isNull() ? "" : row[2].get<std::string>();
+		user_info->uid = row[1].isNull() ? 0 : row[1].get<int>();
+		user_info->name = row[2].isNull() ? "" : row[2].get<std::string>();
+		user_info->email = row[3].isNull() ? "" : row[3].get<std::string>();
+		user_info->pwd = row[4].isNull() ? "" : row[4].get<std::string>();
+		user_info->nick = row[5].isNull() ? "" : row[5].get<std::string>();
+		user_info->desc = row[6].isNull() ? "" : row[6].get<std::string>();
+		user_info->sex = row[7].isNull() ? 0 : row[7].get<int>();
+		user_info->icon = row[8].isNull() ? "" : row[8].get<std::string>();
 
 		return user_info;
 	}
@@ -160,3 +170,37 @@ std::shared_ptr<UserInfo> MysqlDao::GetUser(int uid)
 	}
 }
 
+std::shared_ptr<UserInfo> MysqlDao::GetUser(const std::string& name) {
+	try {
+		mysqlx::Session sess = _pool->getConnection();
+		auto res = sess.sql("SELECT * FROM user WHERE name = ?")
+			.bind(name)
+			.execute();
+
+		auto row = res.fetchOne();
+		if (!row) {
+			return nullptr;
+		}
+
+		std::shared_ptr<UserInfo> user_info = std::make_shared<UserInfo>();
+
+		user_info->uid = row[1].isNull() ? 0 : row[1].get<int>();
+		user_info->name = row[2].isNull() ? "" : row[2].get<std::string>();
+		user_info->email = row[3].isNull() ? "" : row[3].get<std::string>();
+		user_info->pwd = row[4].isNull() ? "" : row[4].get<std::string>();
+		user_info->nick = row[5].isNull() ? "" : row[5].get<std::string>();
+		user_info->desc = row[6].isNull() ? "" : row[6].get<std::string>();
+		user_info->sex = row[7].isNull() ? 0 : row[7].get<int>();
+		user_info->icon = row[8].isNull() ? "" : row[8].get<std::string>();
+
+		return user_info;
+	}
+	catch (const mysqlx::Error& e) {
+		std::cerr << "Mysql Error: " << e.what() << std::endl;
+		return nullptr;
+	}
+	catch (std::exception& e) {
+		std::cerr << "Standard Error: " << e.what() << std::endl;
+		return nullptr;
+	}
+}

@@ -120,6 +120,44 @@ void TcpMgr::initHandlers()
 
         emit sig_switch_chatDlg();
     };
+
+    // 查找用户的回包：
+    // 之前这里注册的 id 写成了 ID_ADD_FRIEND_RSP(1010)，而服务端回的是 ID_SEARCH_USER_RSP(1008)，
+    // 客户端查不到对应的处理函数，就丢掉了回包(日志里的 "not found id [ 1008 ] to handle")，
+    // 于是界面一直停在加载动画上。
+    _handlers[ReqId::ID_SEARCH_USER_RSP] = [this](ReqId id, int len,QByteArray data){
+        Q_UNUSED(len);
+        qDebug()<<"handle id is: "<<id<<", data is: "<<data;
+        QJsonDocument jsonDoc = QJsonDocument::fromJson(data);
+
+        // 是否转换成功
+        if(jsonDoc.isNull()){
+            qDebug()<<"Failed to create QJsonDocument";
+            emit sig_user_search(nullptr);
+            return;
+        }
+
+        QJsonObject jsonObj = jsonDoc.object();
+        // 服务端没查到用户(或请求有问题)时会带上非 0 的 error，这时按“没找到”处理
+        int err = jsonObj.contains("error") ? jsonObj["error"].toInt() : ErrorCodes::ERR_JSON;
+        if(err != ErrorCodes::SUCCESS){
+            qDebug()<<"Search user failed, err is: "<<err;
+            emit sig_user_search(nullptr);
+            return;
+        }
+
+        auto search_info = std::make_shared<SearchInfo>(jsonObj["uid"].toInt(),jsonObj["name"].toString(),
+                                                        jsonObj["nick"].toString(),jsonObj["desc"].toString(),
+                                                        jsonObj["sex"].toInt(),jsonObj["icon"].toString());
+        // 服务端理论上不会回没有 uid 的“成功”包，这里再兜一层，避免弹出空白的结果框
+        if(search_info->_uid <= 0){
+            qDebug()<<"Search user rsp has no valid uid";
+            emit sig_user_search(nullptr);
+            return;
+        }
+
+        emit sig_user_search(search_info);
+    };
 }
 
 void TcpMgr::handleMsg(ReqId id, int len, QByteArray data)
@@ -142,10 +180,9 @@ void TcpMgr::slot_tcp_connect(ServerInfo si)
     _socket.connectToHost(_host,_port);
 }
 
-void TcpMgr::slot_send_data(ReqId reqId, QString data)
+void TcpMgr::slot_send_data(ReqId reqId, QByteArray dataBytes)
 {
     uint16_t id = reqId;
-    QByteArray dataBytes = data.toUtf8();
     quint16 len = static_cast<quint16>(dataBytes.size());
 
     QByteArray block;

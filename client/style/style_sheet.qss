@@ -158,7 +158,12 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
 
 
 LoadingDialog{
-    background: #f2eada;
+    background: transparent; /* 对话框本体透明，只显示中间的加载动画 */
+}
+
+#loading_lb{
+    background: rgba(255, 255, 255, 0.85); /* 动画底下的小圆角底板 */
+    border-radius: 8px;
 }
 
 #title_label{
@@ -395,6 +400,39 @@ LoadingDialog{
 
 #FindSuccessDlg{
    background-color: #ffffff;
+}
+
+#FindFailDlg{
+   background-color: #ffffff;
+}
+
+#fail_tip, #fail_tip2{
+    font-size: 14px;
+    font-family: "Microsoft YaHei";
+}
+
+#fail_sure_btn[state='normal']{
+    background: #07c160;
+    color: #ffffff;
+    font-size: 14px;
+    font-family: "Microsoft YaHei";
+    border-radius: 15px;
+}
+
+#fail_sure_btn[state='hover']{
+    background: #3bbb4b;
+    color: #ffffff;
+    font-size: 14px;
+    font-family: "Microsoft YaHei";
+    border-radius: 15px;
+}
+
+#fail_sure_btn[state='press']{
+    background: #06ad56;
+    color: #ffffff;
+    font-size: 14px;
+    font-family: "Microsoft YaHei";
+    border-radius: 15px;
 }
 
 #name_lb{
