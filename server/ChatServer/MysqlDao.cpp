@@ -203,3 +203,24 @@ std::shared_ptr<UserInfo> MysqlDao::GetUser(const std::string& name) {
 		return nullptr;
 	}
 }
+
+bool MysqlDao::AddFriendApply(const int& from, const int& to) {
+	try {
+		mysqlx::Session sess = _pool->getConnection();
+		
+		mysqlx::SqlResult res = sess.sql(
+			"INSERT INTO friend_apply (from_uid, to_uid) VALUES (?, ?)"
+			"ON DUPLICATE KEY UPDATE from_uid = from_uid, to_uid = to_uid"
+		).bind(from, to).execute();
+
+		return true;
+	}
+	catch (const mysqlx::Error& e) {
+		std::cerr << "Mysql Error: " << e.what() << std::endl;
+		return false;
+	}
+	catch (const std::exception& e) {
+		std::cerr << "Standard exception: " << e.what() << std::endl;
+		return false;
+	}
+}

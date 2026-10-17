@@ -158,6 +158,74 @@ void TcpMgr::initHandlers()
 
         emit sig_user_search(search_info);
     };
+
+    _handlers[ReqId::ID_ADD_FRIEND_RSP] = [this](ReqId id,int len,QByteArray data){
+        Q_UNUSED(len);
+        qDebug()<<"handle id is: "<<id<<" data is: "<<data;
+        // 将QByteArray转换为QJsonDocument
+        QJsonDocument jsonDoc = QJsonDocument::fromJson(data);
+
+        // 检查是否转换成功
+        if(jsonDoc.isNull()){
+            qDebug()<<"Failed to creat QJsonDocument";
+            return;
+        }
+
+        QJsonObject jsonObj = jsonDoc.object();
+
+        if(!jsonObj.contains("error")){
+            int err = ErrorCodes::ERR_JSON;
+            qDebug()<<"Add Friend Failed, err is Json Parse Err: "<<err;
+            return;
+        }
+
+        int err = jsonObj["error"].toInt();
+        if(err!=ErrorCodes::SUCCESS){
+            qDebug()<<"Add Friend Failed, err is: "<<err;
+            return;
+        }
+
+        qDebug()<<"Add Friend Success";
+    };
+
+    _handlers[ReqId::ID_NOTIFY_ADD_FRIEND_REQ] = [this](ReqId id,int len,QByteArray data){
+        Q_UNUSED(len);
+        qDebug()<<"handle id is: "<<id<<" data is: "<<data;
+        QJsonDocument jsonDoc = QJsonDocument::fromJson(data);
+
+        if(jsonDoc.isNull()){
+            qDebug()<<"Failed to create QJsonDocument";
+            return;
+        }
+
+        QJsonObject jsonObj = jsonDoc.object();
+
+        if(!jsonObj.contains("error")){
+            int err = ErrorCodes::ERR_JSON;
+            qDebug()<<"notify add friend req failed"<<err;
+            emit sig_user_search(nullptr);
+            return;
+        }
+
+        int err = jsonObj["error"].toInt();
+        if(err!=ErrorCodes::SUCCESS){
+            qDebug()<<"notify add friend req failed"<<err;
+            emit sig_user_search(nullptr);
+            return;
+        }
+
+        int from_uid = jsonObj["applyuid"].toInt();
+        QString name = jsonObj["name"].toString();
+        QString desc = jsonObj["desc"].toString();
+        QString icon = jsonObj["icon"].toString();
+        QString nick = jsonObj["nick"].toString();
+        int sex = jsonObj["sex"].toInt();
+
+        auto apply_info = std::make_shared<AddFriendApply>(from_uid,name,desc,icon,nick,sex);
+
+        emit sig_friend_apply(apply_info);
+        qDebug()<<"notify add friend req success";
+    };
 }
 
 void TcpMgr::handleMsg(ReqId id, int len, QByteArray data)
