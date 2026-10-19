@@ -163,7 +163,26 @@ void LogicSystem::RegisterCallBacks()
 		root["icon"] = user_info->icon;
 		root["token"] = token;
 
+		// 做任何逻辑的时候，先实现内存层面，再实现从缓存加载层面，最后实现从数据库加载层面
+		//
 		// 从数据库获取申请列表 (只获取一次就行, 申请列表会保存在客户端本地, 只同步一些待申请的即可)
+		std::vector<std::shared_ptr<ApplyInfo>> apply_list;
+		bool b_apply = GetFriendApplyInfo(uid, apply_list);
+		if (b_apply) {
+			json apply_array = json::array();
+			for (auto& apply : apply_list) {
+				json info;
+				info["name"] = apply->_name;
+				info["uid"] = apply->_uid;
+				info["icon"] = apply->_icon;
+				info["nick"] = apply->_nick;
+				info["sex"] = apply->_sex;
+				info["status"] = apply->_status;
+
+				apply_array.push_back(info);
+			}
+			root["apply_list"] = apply_array;
+		}
 
 		// 获取好友列表
 
@@ -295,7 +314,8 @@ void LogicSystem::RegisterCallBacks()
 				notify["name"] = applyname;
 				notify["desc"] = "";
 				std::string jsonstr = notify.dump();
-				sess->Send(jsonstr, ID_NOTIFY_ADD_FRIEND_REQ);
+				// 通知的是被申请人，不能发回给发起申请的 sess
+				session->Send(jsonstr, ID_NOTIFY_ADD_FRIEND_REQ);
 			}
 			return;
 		}
@@ -539,5 +559,11 @@ bool LogicSystem::isPureDigit(const std::string& s) {
 		if (!isdigit(static_cast<unsigned char>(ch))) return false;
 	}
 	return true;
+}
+
+bool LogicSystem::GetFriendApplyInfo(int to_uid, std::vector<std::shared_ptr<ApplyInfo>>& user_list)
+{
+	// 从mysql获取好友申请列表
+	return MysqlMgr::GetInst()->GetApplyList(to_uid, user_list, 0, 10);
 }
 

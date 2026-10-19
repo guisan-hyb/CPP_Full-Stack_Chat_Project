@@ -6,6 +6,7 @@
 #include "RedisMgr.h"
 #include "ConfigMgr.h"
 #include "UserMgr.h"
+#include "ChatGrpcClient.h"
 
 
 
@@ -162,7 +163,26 @@ void LogicSystem::RegisterCallBacks()
 		root["icon"] = user_info->icon;
 		root["token"] = token;
 
+		// 做任何逻辑的时候，先实现内存层面，再实现从缓存加载层面，最后实现从数据库加载层面
+		//
 		// 从数据库获取申请列表 (只获取一次就行, 申请列表会保存在客户端本地, 只同步一些待申请的即可)
+		std::vector<std::shared_ptr<ApplyInfo>> apply_list;
+		bool b_apply = GetFriendApplyInfo(uid, apply_list);
+		if (b_apply) {
+			json apply_array = json::array();
+			for (auto& apply : apply_list) {
+				json info;
+				info["name"] = apply->_name;
+				info["uid"] = apply->_uid;
+				info["icon"] = apply->_icon;
+				info["nick"] = apply->_nick;
+				info["sex"] = apply->_sex;
+				info["status"] = apply->_status;
+
+				apply_array.push_back(info);
+			}
+			root["apply_list"] = apply_array;
+		}
 
 		// 获取好友列表
 
@@ -232,6 +252,93 @@ void LogicSystem::RegisterCallBacks()
 		else {
 			GetUserByName(uid_str, root);
 		}
+	};
+
+	_func_callbacks[ID_ADD_FRIEND_REQ] = [this](std::shared_ptr<CSession> sess, const short& msg_id, const std::string& msg_data) {
+		json root;
+		Defer defer([sess, &root, this]() {
+			std::string jsonstr = root.dump();
+			sess->Send(jsonstr, ID_ADD_FRIEND_RSP);
+			});
+
+		json src_root;
+		try {
+			src_root = json::parse(msg_data);
+		}
+		catch (const json::exception& e) {
+			std::cerr << "Add Friend Json parse error: " << e.what() << std::endl;
+			root["error"] = ErrorCodes::Error_Json;
+			return;
+		}
+
+		if (!src_root.is_object() ||
+			!src_root.contains("uid") || !src_root["uid"].is_number_integer()) {
+			std::cerr << "Add Friend payload error: " << msg_data << std::endl;
+			root["error"] = ErrorCodes::Error_Json;
+			return;
+		}
+
+		auto uid = src_root.value("uid", 0);
+		auto applyname = src_root.value("applyname", std::string());
+		auto backname = src_root.value("backname", std::string());
+		auto to_uid = src_root.value("to_uid", 0);
+		std::cout << "user login uid is: " << uid << " applyname is: " << applyname << " backname is: " << backname
+			<< " to_uid is: " << to_uid << std::endl;
+
+		root["error"] = ErrorCodes::Success;
+
+		// 添加到数据库
+		MysqlMgr::GetInst()->AddFriendApply(uid, to_uid);
+
+		// 查询redis，查找to_uid对应的server_ip
+		auto to_uid_str = std::to_string(to_uid);
+		auto to_ip_key = std::string(USERIPPREFIX) + to_uid_str;
+		std::string to_ip_value = "";
+		bool b_to_ip = RedisMgr::GetInst()->Get(to_ip_key, to_ip_value);
+		if (!b_to_ip) {
+			return;
+		}
+
+		// 检查想加的好友所在的服务器是不是同一个服务器
+		auto& cfg = ConfigMgr::GetInst();
+		auto self_name = cfg["SelfServer"]["Name"];
+
+		// 如果在同一个服务器，直接通知对方有申请消息
+		if (to_ip_value == self_name) {
+			auto session = UserMgr::GetInst()->GetSession(to_uid);
+			if (session) {
+				// 在内存中则直接发送通知对方
+				json notify;
+				notify["error"] = ErrorCodes::Success;
+				notify["applyuid"] = uid;
+				notify["name"] = applyname;
+				notify["desc"] = "";
+				std::string jsonstr = notify.dump();
+				// 通知的是被申请人，不能发回给发起申请的 sess
+				session->Send(jsonstr, ID_NOTIFY_ADD_FRIEND_REQ);
+			}
+			return;
+		}
+
+		// 不在同一个服务器
+		std::string base_key = std::string(USER_BASE_INFO) + std::to_string(uid); // 先查一下自己的基本信息
+		auto apply_info = std::make_shared<UserInfo>();
+		bool b_info = GetBaseInfo(base_key, uid, apply_info);
+
+		AddFriendReq add_req;
+		add_req.set_apply_uid(uid);
+		add_req.set_to_uid(to_uid);
+		add_req.set_name(applyname);
+		add_req.set_desc("");
+		if (b_info) {
+			add_req.set_icon(apply_info->icon);
+			add_req.set_sex(apply_info->sex);
+			add_req.set_nick(apply_info->nick);
+		}
+
+		// 发送通知
+		ChatGrpcClient::GetInst()->NotifyAddFriend(to_ip_value, add_req);
+
 	};
 }
 
@@ -452,5 +559,11 @@ bool LogicSystem::isPureDigit(const std::string& s) {
 		if (!isdigit(static_cast<unsigned char>(ch))) return false;
 	}
 	return true;
+}
+
+bool LogicSystem::GetFriendApplyInfo(int to_uid, std::vector<std::shared_ptr<ApplyInfo>>& user_list)
+{
+	// 从mysql获取好友申请列表
+	return MysqlMgr::GetInst()->GetApplyList(to_uid, user_list, 0, 10);
 }
 

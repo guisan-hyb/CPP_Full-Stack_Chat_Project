@@ -39,6 +39,8 @@ Status ChatServiceImpl::NotifyAddFriend(ServerContext* context, const AddFriendR
 
 	std::string jsonstr = rtvalue.dump();
 	session->Send(jsonstr, ID_NOTIFY_ADD_FRIEND_REQ);
+
+	return Status::OK;
 }
 
 Status ChatServiceImpl::NotifyAuthFriend(ServerContext* context, const AuthFriendReq* request, AuthFriendRsp* response)

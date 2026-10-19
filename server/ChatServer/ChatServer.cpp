@@ -24,6 +24,10 @@ int main() {
 		builder.RegisterService(&service);
 		// 构建并启动gRPC服务器
 		std::unique_ptr<Server> server(builder.BuildAndStart());
+		if (!server) {
+			throw std::runtime_error("Failed to start gRPC server on " + server_address +
+				", the RPC port may already be in use");
+		}
 		std::cout << "RPC Server listening on: " << server_address << std::endl;
 
 		// 单独一个线程处理grpc服务

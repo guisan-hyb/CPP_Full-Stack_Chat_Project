@@ -224,3 +224,42 @@ bool MysqlDao::AddFriendApply(const int& from, const int& to) {
 		return false;
 	}
 }
+
+bool MysqlDao::GetApplyList(int to_uid, std::vector<std::shared_ptr<ApplyInfo>>& apply_list, int begin, int limit) {
+	try {
+		mysqlx::Session sess = _pool->getConnection();
+		mysqlx::SqlResult res = sess.sql(R"(
+			SELECT friend_apply.from_uid, friend_apply.status, user.name, user.nick, user.sex
+			FROM friend_apply	
+			JOIN user ON friend_apply.from_uid = user.uid
+			WHERE friend_apply.to_uid = ?
+			AND friend_apply.id > ?
+			ORDER BY friend_apply.id ASC
+			LIMIT ?
+		)")
+			.bind(to_uid)
+			.bind(begin)
+			.bind(limit)
+			.execute();
+
+		for (mysqlx::Row& row : res) {
+			auto uid = row[0].isNull() ? 0 : row[0].get<int>();
+			auto status = row[1].isNull() ? 0 : row[1].get<int>();
+			auto name = row[2].isNull() ? "" : row[2].get<std::string>();
+			auto nick = row[3].isNull() ? "" : row[3].get<std::string>();
+			int sex = row[4].isNull() ? 0 : row[4].get<int>();
+			auto apply_one = std::make_shared<ApplyInfo>(uid, name, "", "", nick, sex, status);
+			apply_list.push_back(apply_one);
+		}
+
+		return true;
+	}
+	catch (const mysqlx::Error& e) {
+		std::cerr << "Mysql Error: " << e.what() << std::endl;
+		return false;
+	}
+	catch (const std::exception& e) {
+		std::cerr << "Standard exception: " << e.what() << std::endl;
+		return false;
+	}
+}
