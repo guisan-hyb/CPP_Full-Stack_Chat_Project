@@ -47,6 +47,12 @@ void ApplyFriendItem::ShowAddBtn(bool bshow)
     }
 }
 
+void ApplyFriendItem::MarkAsAdded()
+{
+    _apply_info->_status = 1;
+    ShowAddBtn(false);
+}
+
 int ApplyFriendItem::GetUid() {
     return _apply_info->_uid;
 }

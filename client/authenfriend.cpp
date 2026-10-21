@@ -415,8 +415,8 @@ void AuthenFriend::SlotApplySure()
     //添加发送逻辑
     QJsonObject jsonObj;
     auto uid = UserMgr::GetInstance()->GetUid();
-    jsonObj["from_uid"] = uid;
-    jsonObj["to_uid"] = _apply_info->_uid;
+    jsonObj["from_uid"] = uid; // 当前登录用户, 也就是认证的同意者
+    jsonObj["to_uid"] = _apply_info->_uid; // 申请人
     QString back_name = "";
     if(ui->back_ed->text().isEmpty()){
         back_name = ui->back_ed->placeholderText();

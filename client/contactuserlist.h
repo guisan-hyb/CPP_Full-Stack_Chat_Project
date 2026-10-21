@@ -6,6 +6,7 @@
 #include <QWheelEvent>
 #include <QScrollBar>
 #include <QDebug>
+#include <QSet>
 #include <memory>
 #include "userdata.h"
 
@@ -34,6 +35,7 @@ private:
     bool _load_pending;
     ConUserItem* _add_friend_item;
     QListWidgetItem * _groupitem;
+    QSet<int> _contact_items_added;
 };
 
 #endif // CONTACTUSERLIST_H

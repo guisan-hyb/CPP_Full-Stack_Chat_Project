@@ -75,6 +75,27 @@ std::vector<std::shared_ptr<ApplyInfo> > UserMgr::GetApplyList()
     return _apply_list;
 }
 
+int UserMgr::GetPendingApplyCount()
+{
+    int count = 0;
+    for (const auto& apply : _apply_list) {
+        if (apply && apply->_status == 0) {
+            ++count;
+        }
+    }
+
+    return count;
+}
+
+void UserMgr::MarkApplyHandled(int uid)
+{
+    for (const auto& apply : _apply_list) {
+        if (apply && apply->_uid == uid) {
+            apply->_status = 1;
+        }
+    }
+}
+
 bool UserMgr::AlreadyApply(int uid)
 {
     for(auto& apply : _apply_list){
@@ -134,8 +155,8 @@ std::vector<std::shared_ptr<FriendInfo>> UserMgr::GetConListPerPage() {
 
 UserMgr::UserMgr():_user_info(nullptr), _chat_loaded(0),_contact_loaded(0)
 {
-    // connect(TcpMgr::GetInstance().get(), &TcpMgr::sig_auth_rsp, this, &UserMgr::SlotAddFriendRsp);
-    // connect(TcpMgr::GetInstance().get(), &TcpMgr::sig_add_auth_friend, this, &UserMgr::SlotAddFriendAuth);
+    connect(TcpMgr::GetInstance().get(), &TcpMgr::sig_auth_rsp, this, &UserMgr::SlotAddFriendRsp);
+    connect(TcpMgr::GetInstance().get(), &TcpMgr::sig_add_auth_friend, this, &UserMgr::SlotAddFriendAuth);
 
 }
 
@@ -210,13 +231,25 @@ bool UserMgr::CheckFriendById(int uid)
 
 void UserMgr::AddFriend(std::shared_ptr<AuthRsp> auth_rsp)
 {
-    auto friend_info = std::make_shared<FriendInfo>(auth_rsp);
-    _friend_map[friend_info->_uid] = friend_info;
+    AddFriend(std::make_shared<FriendInfo>(auth_rsp));
 }
 
 void UserMgr::AddFriend(std::shared_ptr<AuthInfo> auth_info)
 {
-    auto friend_info = std::make_shared<FriendInfo>(auth_info);
-    _friend_map[friend_info->_uid] = friend_info;
+    AddFriend(std::make_shared<FriendInfo>(auth_info));
+}
+
+void UserMgr::AddFriend(std::shared_ptr<FriendInfo> friend_info)
+{
+    if (!friend_info || _friend_map.contains(friend_info->_uid)) {
+        return;
+    }
+
+    // 好友数据同时维护在 map 和分页列表中，避免新好友只能被即时 UI 使用，
+    // 却无法被 GetChatListPerPage() / GetConListPerPage() 查到。
+    _friend_map.insert(friend_info->_uid, friend_info);
+    _friend_list.insert(_friend_list.begin(), friend_info);
+    ++_chat_loaded;
+    ++_contact_loaded;
 }
 

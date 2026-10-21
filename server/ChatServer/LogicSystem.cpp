@@ -185,6 +185,22 @@ void LogicSystem::RegisterCallBacks()
 		}
 
 		// 获取好友列表
+		std::vector<std::shared_ptr<UserInfo>> friend_list;
+		bool b_friend_list = GetFriendList(uid, friend_list);
+		json friend_array = json::array();
+		for (auto& friend_ele : friend_list) {
+			json info;
+			info["name"] = friend_ele->name;
+			info["uid"] = friend_ele->uid;
+			info["icon"] = friend_ele->icon;
+			info["nick"] = friend_ele->nick;
+			info["sex"] = friend_ele->sex;
+			info["desc"] = friend_ele->desc;
+			info["back"] = friend_ele->back;
+
+			friend_array.push_back(info);
+		}
+		root["friend_list"] = friend_array;
 
 
 		// 处理该新连接：
@@ -339,6 +355,108 @@ void LogicSystem::RegisterCallBacks()
 		// 发送通知
 		ChatGrpcClient::GetInst()->NotifyAddFriend(to_ip_value, add_req);
 
+	};
+
+	_func_callbacks[ID_AUTH_FRIEND_REQ] = [this](std::shared_ptr<CSession> sess, const short& msg_id, const std::string& msg_data) {
+		json root;
+		Defer defer([this, sess, &root] {
+			std::string jsonstr = root.dump();
+			sess->Send(jsonstr, ID_AUTH_FRIEND_RSP);
+		});
+
+		json src_root;
+		try {
+			src_root = json::parse(msg_data);
+		}
+		catch (const json::exception& e) {
+			std::cerr << "Authen Friend Req Json parse error: " << e.what() << std::endl;
+			root["error"] = ErrorCodes::Error_Json;
+			return;
+		}
+		
+		if (!src_root.is_object() ||
+			!src_root.contains("from_uid") || !src_root["from_uid"].is_number_integer()) {
+			std::cerr << "Authen friend payload error: " << msg_data << std::endl;
+			root["error"] = ErrorCodes::Error_Json;
+			return;
+		}
+
+		auto uid = src_root.value("from_uid", 0);
+		auto to_uid = src_root.value("to_uid", 0);
+		auto back_name = src_root.value("back", "");
+		std::cout << "from " << uid << "auth friend to " << to_uid << std::endl;
+
+		root["error"] = ErrorCodes::Success;
+		auto user_info = std::make_shared<UserInfo>();
+
+		std::string base_key = std::string(USER_BASE_INFO) + std::to_string(to_uid);
+		bool b_info = GetBaseInfo(base_key, to_uid, user_info);
+		if (b_info) {
+			root["name"] = user_info->name;
+			root["nick"] = user_info->nick;
+			root["icon"] = user_info->icon;
+			root["sex"] = user_info->sex;
+			root["uid"] = to_uid;
+		}
+		else {
+			root["error"] = ErrorCodes::Uid_Invalid;
+			return;
+		}
+
+		// 更新数据库: 更新friend_apply中status状态 + 添加到friend
+		bool b_auth_and_add = MysqlMgr::GetInst()->AuthAndAddFriend(to_uid, uid, back_name); // 当前协议：to_uid 是申请人 ，uid 是同意者 
+		if (!b_auth_and_add) {
+			root["error"] = ErrorCodes::Uid_Invalid;
+			return;
+		}
+
+		// 查询redis, 查找to_uid对应的server_ip
+		auto to_str = std::to_string(to_uid);
+		auto to_ip_key = std::string(USERIPPREFIX) + to_str;
+		std::string to_ip_value = "";
+		bool b_ip = RedisMgr::GetInst()->Get(to_ip_key, to_ip_value);
+		if (!b_ip) {
+			return;
+		}
+
+		auto& cfg = ConfigMgr::GetInst();
+		auto self_name = cfg["SelfServer"]["Name"];
+
+		// 对方也在该服务器
+		if (self_name == to_ip_value) {
+			auto peer_sess = UserMgr::GetInst()->GetSession(to_uid);
+			if (peer_sess) {
+				// 在内存中则直接发送通知对方
+				json notify;
+				notify["error"] = ErrorCodes::Success;
+				notify["from_uid"] = uid;
+				notify["to_uid"] = to_uid;
+				std::string base_key = std::string(USER_BASE_INFO) + std::to_string(uid);
+				auto user_info = std::make_shared<UserInfo>();
+				bool b_info = GetBaseInfo(base_key, uid, user_info);
+				if (b_info) {
+					notify["name"] = user_info->name;
+					notify["nick"] = user_info->nick;
+					notify["icon"] = user_info->icon;
+					notify["sex"] = user_info->sex;
+				}
+				else {
+					notify["error"] = ErrorCodes::Uid_Invalid;
+				}
+
+				std::string return_str = notify.dump();
+				peer_sess->Send(return_str, ID_NOTIFY_AUTH_FRIEND_REQ);
+			}
+
+			return;
+		}
+
+		// 不在同一服务器
+		AuthFriendReq auth_req;
+		auth_req.set_from_uid(uid);
+		auth_req.set_to_uid(to_uid);
+		// gRPC发送通知
+		ChatGrpcClient::GetInst()->NotifyAuthFriend(to_ip_value, auth_req);
 	};
 }
 
@@ -565,5 +683,11 @@ bool LogicSystem::GetFriendApplyInfo(int to_uid, std::vector<std::shared_ptr<App
 {
 	// 从mysql获取好友申请列表
 	return MysqlMgr::GetInst()->GetApplyList(to_uid, user_list, 0, 10);
+}
+
+bool LogicSystem::GetFriendList(int self_id, std::vector<std::shared_ptr<UserInfo>>& user_list)
+{
+	// 从mysql获取好友列表
+	return MysqlMgr::GetInst()->GetFriendList(self_id, user_list);
 }
 

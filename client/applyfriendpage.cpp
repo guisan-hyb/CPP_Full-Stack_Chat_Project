@@ -27,14 +27,13 @@ ApplyFriendPage::~ApplyFriendPage()
     delete ui;
 }
 
-void ApplyFriendPage::AddNewApply(std::shared_ptr<AddFriendApply> apply)
+void ApplyFriendPage::AddNewApply(std::shared_ptr<ApplyInfo> apply_info)
 {
     //先模拟头像随机，以后头像资源增加资源服务器后再显示
     int randomValue = QRandomGenerator::global()->bounded(100); // 生成0到99之间的随机整数
     int head_i = randomValue % heads.size();
     auto* apply_item = new ApplyFriendItem();
-    auto apply_info = std::make_shared<ApplyInfo>(apply->_from_uid,
-                                                  apply->_name, apply->_desc,heads[head_i], apply->_name, 0, 0);
+    apply_info->SetIcon(heads[head_i]);
     apply_item->SetInfo(apply_info);
     QListWidgetItem* item = new QListWidgetItem;
     //qDebug()<<"chat_user_wid sizeHint is " << chat_user_wid->sizeHint();
@@ -43,6 +42,7 @@ void ApplyFriendPage::AddNewApply(std::shared_ptr<AddFriendApply> apply)
     ui->apply_friend_list->insertItem(0,item);
     ui->apply_friend_list->setItemWidget(item, apply_item);
     apply_item->ShowAddBtn(true);
+    _unauth_items[apply_info->_uid] = apply_item;
     //收到审核好友信号
     connect(apply_item, &ApplyFriendItem::sig_auth_friend, [this](std::shared_ptr<ApplyInfo> apply_info) {
         auto* authFriend = new AuthenFriend(this);
@@ -127,5 +127,6 @@ void ApplyFriendPage::slot_auth_rsp(std::shared_ptr<AuthRsp> auth_rsp) {
         return;
     }
 
-    find_iter->second->ShowAddBtn(false);
+    find_iter->second->MarkAsAdded();
+    _unauth_items.erase(find_iter);
 }

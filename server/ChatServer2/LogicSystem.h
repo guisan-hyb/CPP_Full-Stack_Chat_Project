@@ -31,6 +31,7 @@ private:
 	void GetUserByName(const std::string& name, json& root);
 	bool isPureDigit(const std::string& s);
 	bool GetFriendApplyInfo(int to_uid, std::vector<std::shared_ptr<ApplyInfo>>& user_list);
+	bool GetFriendList(int self_id, std::vector<std::shared_ptr<UserInfo>>& user_list);
 
 private:
 	std::thread _work_thread;

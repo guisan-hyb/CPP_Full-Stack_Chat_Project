@@ -63,6 +63,8 @@ public:
 	std::shared_ptr<UserInfo> GetUser(const std::string& name);
 	bool AddFriendApply(const int& from, const int& to);
 	bool GetApplyList(int to_uid, std::vector<std::shared_ptr<ApplyInfo>>& apply_list, int begin, int limit);
+	bool AuthAndAddFriend(const int& applicant_uid, const int& accepter_uid, const std::string& back_name);
+	bool GetFriendList(int self_id, std::vector<std::shared_ptr<UserInfo>>& user_list);
 
 private:
 	std::unique_ptr<MysqlPool> _pool;

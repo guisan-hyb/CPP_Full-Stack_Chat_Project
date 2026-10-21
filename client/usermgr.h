@@ -20,6 +20,8 @@ public:
     void AppendApplyList(QJsonArray array);
     void AppendFriendList(QJsonArray array);
     std::vector<std::shared_ptr<ApplyInfo>> GetApplyList();
+    int GetPendingApplyCount();
+    void MarkApplyHandled(int uid);
     bool AlreadyApply(int uid);
     void AddApplyList(std::shared_ptr<ApplyInfo> app);
     std::vector<std::shared_ptr<FriendInfo>> GetChatListPerPage();
@@ -32,6 +34,7 @@ public:
     void AddFriend(std::shared_ptr<AuthRsp> auth_rsp);
     void AddFriend(std::shared_ptr<AuthInfo> auth_info);
 private:
+    void AddFriend(std::shared_ptr<FriendInfo> friend_info);
     UserMgr();
     std::shared_ptr<UserInfo> _user_info;
     std::vector<std::shared_ptr<ApplyInfo>> _apply_list;

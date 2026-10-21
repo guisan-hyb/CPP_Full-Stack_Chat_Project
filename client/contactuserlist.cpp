@@ -23,13 +23,13 @@ ContactUserList::ContactUserList(QWidget *parent): _add_friend_item(nullptr)
     addContactUserList();
     //连接点击的信号和槽
     connect(this, &QListWidget::itemClicked, this, &ContactUserList::slot_item_clicked);
-    // //链接对端同意认证后通知的信号
-    // connect(TcpMgr::GetInstance().get(), &TcpMgr::sig_add_auth_friend,this,
-    //         &ContactUserList::slot_add_auth_firend);
+    //链接对端同意认证后通知的信号
+    connect(TcpMgr::GetInstance().get(), &TcpMgr::sig_add_auth_friend,this,
+            &ContactUserList::slot_add_auth_firend);
 
-    // //链接自己点击同意认证后界面刷新
-    // connect(TcpMgr::GetInstance().get(), &TcpMgr::sig_auth_rsp,this,
-    //         &ContactUserList::slot_auth_rsp);
+    //链接自己点击同意认证后界面刷新
+    connect(TcpMgr::GetInstance().get(), &TcpMgr::sig_auth_rsp,this,
+            &ContactUserList::slot_auth_rsp);
 }
 
 
@@ -81,6 +81,7 @@ void ContactUserList::addContactUserList()
         item->setSizeHint(con_user_wid->sizeHint());
         this->addItem(item);
         this->setItemWidget(item, con_user_wid);
+        _contact_items_added.insert(con_ele->_uid);
     }
 
     UserMgr::GetInstance()->UpdateContactLoadedCount();
@@ -132,7 +133,7 @@ bool ContactUserList::eventFilter(QObject *watched, QEvent *event)
 
         if (maxScrollValue - currentValue <= 0) {
 
-            auto b_loaded = UserMgr::GetInstance()->IsLoadChatFin();
+            auto b_loaded = UserMgr::GetInstance()->IsLoadConFin();
             if(b_loaded){
                 return true;
             }
@@ -206,10 +207,10 @@ void ContactUserList::slot_item_clicked(QListWidgetItem *item)
 void ContactUserList::slot_add_auth_firend(std::shared_ptr<AuthInfo> auth_info)
 {
     qDebug() << "slot add auth friend ";
-    // 在 groupitem 之后插入新项
-    int randomValue = QRandomGenerator::global()->bounded(100); // 生成0到99之间的随机整数
-    int str_i = randomValue%strs.size();
-    int head_i = randomValue%heads.size();
+    // UserMgr 会先收到同一信号并更新 _friend_map，这里只判断联系人 UI 是否已插入。
+    if (_contact_items_added.contains(auth_info->_uid)) {
+        return;
+    }
 
     auto *con_user_wid = new ConUserItem();
     con_user_wid->SetInfo(auth_info);
@@ -223,20 +224,19 @@ void ContactUserList::slot_add_auth_firend(std::shared_ptr<AuthInfo> auth_info)
     this->insertItem(index + 1, item);
 
     this->setItemWidget(item, con_user_wid);
-
+    _contact_items_added.insert(auth_info->_uid);
 }
 
 void ContactUserList::slot_auth_rsp(std::shared_ptr<AuthRsp> auth_rsp)
 {
     qDebug() << "slot auth rsp called";
-
-    // 在 groupitem 之后插入新项
-    int randomValue = QRandomGenerator::global()->bounded(100); // 生成0到99之间的随机整数
-    int str_i = randomValue%strs.size();
-    int head_i = randomValue%heads.size();
+    // UserMgr 会先收到同一信号并更新 _friend_map，这里只判断联系人 UI 是否已插入。
+    if (_contact_items_added.contains(auth_rsp->_uid)) {
+        return;
+    }
 
     auto *con_user_wid = new ConUserItem();
-    con_user_wid->SetInfo(auth_rsp->_uid ,auth_rsp->_name, heads[head_i]);
+    con_user_wid->SetInfo(auth_rsp);
     QListWidgetItem *item = new QListWidgetItem;
     //qDebug()<<"chat_user_wid sizeHint is " << chat_user_wid->sizeHint();
     item->setSizeHint(con_user_wid->sizeHint());
@@ -247,5 +247,5 @@ void ContactUserList::slot_auth_rsp(std::shared_ptr<AuthRsp> auth_rsp)
     this->insertItem(index + 1, item);
 
     this->setItemWidget(item, con_user_wid);
-
+    _contact_items_added.insert(auth_rsp->_uid);
 }
