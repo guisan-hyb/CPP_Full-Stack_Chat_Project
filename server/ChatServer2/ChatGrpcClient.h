@@ -98,7 +98,7 @@ public:
 	~ChatGrpcClient() = default;
 	AddFriendRsp NotifyAddFriend(const std::string& server_ip, const AddFriendReq& req);
 	AuthFriendRsp NotifyAuthFriend(const std::string& server_ip, const AuthFriendReq& req);
-	TextChatMsgRsp NotifyTextChatMsg(const std::string& server_ip, const TextChatMsgReq& req, const json& rtvalue);
+	TextChatMsgRsp NotifyTextChatMsg(const std::string& server_ip, const TextChatMsgReq& req);
 	bool GetBaseInfo(const std::string& base_key, int uid, std::shared_ptr<UserInfo>& user_info);
 
 private:

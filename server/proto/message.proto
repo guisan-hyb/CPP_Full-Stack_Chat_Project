@@ -148,6 +148,8 @@ message SendChatMsgRsp {
 }
 
 // 文本聊天数据
+// unique_id：字符串，用于唯一标识一条客户端消息
+// msg_id：int32，适合数据库主键或服务端生成的数字消息编号
 message TextChatData {
   string unique_id  = 1; // 唯一消息ID
   int32  msg_id     = 2; // 消息ID

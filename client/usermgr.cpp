@@ -239,6 +239,32 @@ void UserMgr::AddFriend(std::shared_ptr<AuthInfo> auth_info)
     AddFriend(std::make_shared<FriendInfo>(auth_info));
 }
 
+std::shared_ptr<UserInfo> UserMgr::GetUserInfo()
+{
+    return _user_info;
+}
+
+std::shared_ptr<FriendInfo> UserMgr::GetFriendById(int uid)
+{
+    auto find_it = _friend_map.find(uid);
+    if(find_it == _friend_map.end()){
+        return nullptr;
+    }
+
+    return *find_it;
+}
+
+void UserMgr::AppendFriendChatMsg(int friend_id, std::vector<std::shared_ptr<TextChatData> > msgdata)
+{
+    auto find_iter = _friend_map.find(friend_id);
+    if(find_iter == _friend_map.end()){
+        qDebug()<<"append friend uid: "<<friend_id<<" not found";
+        return;
+    }
+
+    find_iter.value()->AppendChatMsgs(msgdata);
+}
+
 void UserMgr::AddFriend(std::shared_ptr<FriendInfo> friend_info)
 {
     if (!friend_info || _friend_map.contains(friend_info->_uid)) {

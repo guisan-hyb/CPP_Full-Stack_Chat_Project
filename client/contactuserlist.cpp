@@ -207,7 +207,7 @@ void ContactUserList::slot_item_clicked(QListWidgetItem *item)
 void ContactUserList::slot_add_auth_firend(std::shared_ptr<AuthInfo> auth_info)
 {
     qDebug() << "slot add auth friend ";
-    // UserMgr 会先收到同一信号并更新 _friend_map，这里只判断联系人 UI 是否已插入。
+    // UserMgr 会先收到同一信号并更新 _friend_map，这里只判断联系人 UI 是否已插入
     if (_contact_items_added.contains(auth_info->_uid)) {
         return;
     }

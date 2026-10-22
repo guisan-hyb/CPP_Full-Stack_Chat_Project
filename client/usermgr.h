@@ -33,6 +33,10 @@ public:
     bool CheckFriendById(int uid);
     void AddFriend(std::shared_ptr<AuthRsp> auth_rsp);
     void AddFriend(std::shared_ptr<AuthInfo> auth_info);
+    std::shared_ptr<UserInfo> GetUserInfo();
+    std::shared_ptr<FriendInfo> GetFriendById(int uid);
+    void AppendFriendChatMsg(int friend_id,std::vector<std::shared_ptr<TextChatData>> msgdata);
+
 private:
     void AddFriend(std::shared_ptr<FriendInfo> friend_info);
     UserMgr();

@@ -458,6 +458,94 @@ void LogicSystem::RegisterCallBacks()
 		// gRPC发送通知
 		ChatGrpcClient::GetInst()->NotifyAuthFriend(to_ip_value, auth_req);
 	};
+
+	_func_callbacks[ID_TEXT_CHAT_MSG_REQ] = [this](std::shared_ptr<CSession> sess, const short& msg_id, const std::string& msg_data) {
+		json root;
+		Defer defer([this, sess, &root] {
+			std::string jsonstr = root.dump();
+			sess->Send(jsonstr, ID_TEXT_CHAT_MSG_RSP);
+		});
+
+		json src_root;
+		try {
+			src_root = json::parse(msg_data);
+		}
+		catch (const json::exception& e) {
+			std::cerr << "Text Chat Msg Json parse error: " << e.what() << std::endl;
+			root["error"] = ErrorCodes::Error_Json;
+			return;
+		}
+
+		if (!src_root.is_object() ||
+			!src_root.contains("from_uid") || !src_root["from_uid"].is_number_integer() ||
+			!src_root.contains("to_uid") || !src_root["to_uid"].is_number_integer() ||
+			!src_root.contains("text_array") || !src_root["text_array"].is_array()) {
+			std::cerr << "Text Chat payload error: " << msg_data << std::endl;
+			root["error"] = ErrorCodes::Error_Json;
+			return;
+		}
+
+		const auto& arrays = src_root["text_array"];
+		for (const auto& txt_obj : arrays) {
+			if (!txt_obj.is_object() ||
+				!txt_obj.contains("content") || !txt_obj["content"].is_string() ||
+				!txt_obj.contains("unique_id") || !txt_obj["unique_id"].is_string()) {
+				std::cerr << "Text Chat payload error: " << msg_data << std::endl;
+				root["error"] = ErrorCodes::Error_Json;
+				return;
+			}
+		}
+
+		auto uid = src_root["from_uid"].get<int>();
+		auto to_uid = src_root["to_uid"].get<int>();
+
+		root["error"] = ErrorCodes::Success;
+		root["from_uid"] = uid;
+		root["to_uid"] = to_uid;
+		root["text_array"] = arrays;
+
+		// 查询redis
+		auto to_ip_key = std::string(USERIPPREFIX) + std::to_string(to_uid);
+		std::string to_ip_value = "";
+		bool b_ip = RedisMgr::GetInst()->Get(to_ip_key, to_ip_value);
+		if (!b_ip) {
+			root["error"] = ErrorCodes::Uid_Invalid;
+			return;
+		}
+
+		auto& self_name = ConfigMgr::GetInst()["SelfServer"]["Name"];
+		// 同一服务器
+		if (to_ip_value == self_name) {
+			auto peer_sess = UserMgr::GetInst()->GetSession(to_uid);
+			if (peer_sess) {
+				std::string return_str = root.dump();
+				peer_sess->Send(return_str, ID_NOTIFY_TEXT_CHAT_MSG_REQ);
+			}
+			else {
+				root["error"] = ErrorCodes::Uid_Invalid;
+			}
+			return;
+		}
+
+		// 不在同一个服务器
+		TextChatMsgReq text_msg_req;
+		text_msg_req.set_from_uid(uid);
+		text_msg_req.set_to_uid(to_uid);
+		for (const auto& txt_obj : arrays) {
+			const auto& content = txt_obj["content"].get_ref<const std::string&>();
+			const auto& unique_id = txt_obj["unique_id"].get_ref<const std::string&>();
+
+			auto* text_msg = text_msg_req.add_text_msgs();
+			text_msg->set_unique_id(unique_id);
+			text_msg->set_msg_content(content);
+		}
+
+		// 发送通知
+		auto rsp = ChatGrpcClient::GetInst()->NotifyTextChatMsg(to_ip_value, text_msg_req);
+		if (rsp.error() != ErrorCodes::Success) {
+			root["error"] = rsp.error();
+		}
+	};
 }
 
 
