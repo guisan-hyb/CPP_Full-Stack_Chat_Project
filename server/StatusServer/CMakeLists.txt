@@ -37,9 +37,13 @@ target_link_libraries(StatusServer PRIVATE
 set(CONFIG_FILE ${CMAKE_CURRENT_SOURCE_DIR}/config.ini)
 
 # 2. 添加自定义命令：在编译 StatusServer 之后，将 config.ini 拷贝到 .exe 所在目录
-add_custom_command(TARGET StatusServer POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-    ${CONFIG_FILE}
-    $<TARGET_FILE_DIR:StatusServer>
-)
+if(EXISTS ${CONFIG_FILE})
+    add_custom_command(TARGET StatusServer POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        ${CONFIG_FILE}
+        $<TARGET_FILE_DIR:StatusServer>
+    )
+else()
+    message(WARNING "StatusServer/config.ini 不存在，请从 config.example.ini 复制并填写本地凭据")
+endif()
 

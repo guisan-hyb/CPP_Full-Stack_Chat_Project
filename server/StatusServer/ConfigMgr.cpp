@@ -67,14 +67,6 @@ ConfigMgr::ConfigMgr() {
 		_config_map[current_section] = current_section_info;
 	}
 
-	// 输出所有的 section 和 key-value 对  
-	for (const auto& section_entry : _config_map) {
-		const std::string& section_name = section_entry.first;
-		const SectionInfo& section_config = section_entry.second;
-		std::cout << "[" << section_name << "]" << std::endl;
-		for (const auto& key_value_pair : section_config._section_datas) {
-			std::cout << key_value_pair.first << "=" << key_value_pair.second << std::endl;
-		}
-	}
+	std::cout << "Loaded " << _config_map.size() << " config sections from " << config_path << std::endl;
 }
 

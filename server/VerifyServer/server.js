@@ -13,10 +13,8 @@ const redis_module = require('./redis')
  */
 
 async function GetVerifyCode(call, callback) {
-    console.log("email is ", call.request.email)
     try {
         let query_res = await redis_module.GetRedis(const_module.code_prefix + call.request.email);
-        console.log("query_res is ", query_res)
 
         let uniqueId = query_res;
         if (uniqueId == null) {
@@ -37,7 +35,6 @@ async function GetVerifyCode(call, callback) {
             uniqueId = uniqueId.substring(0, 4);
         }
 
-        console.log("uniqueId is ", uniqueId)
         let text_str = '您的验证码为' + uniqueId + '请三分钟内完成注册'
         //发送邮件
         let mailOptions = {
@@ -48,7 +45,7 @@ async function GetVerifyCode(call, callback) {
         };
 
         let send_res = await emailModule.SendMail(mailOptions);
-        console.log("send res is ", send_res)
+        console.log("verification email sent")
 
         callback(null, {
             email: call.request.email,

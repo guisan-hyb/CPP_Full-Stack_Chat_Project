@@ -114,3 +114,12 @@ Desktop.ini
 # Node.js 相关
 node_modules/
 npm-debug.log
+
+# ===============================
+# 10. 本地配置与日志（不得提交真实凭据）
+# ===============================
+client/config.ini
+server/*/config.ini
+server/VerifyServer/config.json
+logs/
+*.log

@@ -50,14 +50,6 @@ ConfigMgr::ConfigMgr() {
 		}
 	}
 
-	// 测试, 打印所有的键值对
-	for (auto& ele : _config_map) {
-		auto& sectionInfo_name = ele.first;
-		auto& sectionInfo = ele.second;
-		std::cout << "[" << sectionInfo_name << "]" << std::endl;
-		for (auto& pair : sectionInfo._section_datas) {
-			std::cout << pair.first << " = " << pair.second << std::endl;
-		}
-	}
+	std::cout << "Loaded " << _config_map.size() << " config sections from " << config_path << std::endl;
 }
 

@@ -133,8 +133,6 @@ bool MysqlDao::CheckPwd(const std::string& email, const std::string& pwd, UserIn
 
 		// 获取密码
 		std::string origin_pwd = row[3].isNull() ? "" : row[3].get<std::string>();
-		std::cout << "Password: " << origin_pwd << std::endl;
-
 		// 密码比对
 		if (pwd != origin_pwd) {
 			return false;

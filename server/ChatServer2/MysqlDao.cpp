@@ -111,8 +111,6 @@ bool MysqlDao::CheckPwd(const std::string& email, const std::string& pwd, UserIn
 		if (!row) return false;
 
 		std::string origin_pwd = row[3].isNull() ? "" : row[3].get<std::string>();
-		std::cout << "Password: " << origin_pwd << std::endl;
-
 		if (pwd != origin_pwd) false;
 
 		userInfo.uid = row[0].get<int>();

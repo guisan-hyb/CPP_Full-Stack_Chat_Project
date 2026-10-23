@@ -40,8 +40,12 @@ target_link_libraries(GateServer PRIVATE
 set(CONFIG_FILE ${CMAKE_CURRENT_SOURCE_DIR}/config.ini)
 
 # 2. 添加自定义命令：在编译 GateServer 之后，将 config.ini 拷贝到 .exe 所在目录
-add_custom_command(TARGET GateServer POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-    ${CONFIG_FILE}
-    $<TARGET_FILE_DIR:GateServer>
-)
+if(EXISTS ${CONFIG_FILE})
+    add_custom_command(TARGET GateServer POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        ${CONFIG_FILE}
+        $<TARGET_FILE_DIR:GateServer>
+    )
+else()
+    message(WARNING "GateServer/config.ini 不存在，请从 config.example.ini 复制并填写本地凭据")
+endif()

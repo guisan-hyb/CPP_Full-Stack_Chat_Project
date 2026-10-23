@@ -20,7 +20,7 @@ LogicSystem::LogicSystem() {
 	// 发送验证码 回调逻辑
 	RegPost("/get_verifycode", [](std::shared_ptr<HttpConnection> connection) {
 		auto body_str = beast::buffers_to_string(connection->_request.body().data());
-		std::cout << "receive body is: " << body_str << std::endl;
+		std::cout << "Received POST /get_verifycode" << std::endl;
 		connection->_response.set(http::field::content_type, "text/json");
 
 		json root;// 要赋给_response 的
@@ -54,7 +54,7 @@ LogicSystem::LogicSystem() {
 	// 用户注册 回调逻辑
 	RegPost("/user_register", [](std::shared_ptr<HttpConnection> connection) {
 		auto body_str = beast::buffers_to_string(connection->_request.body().data());
-		std::cout << "receive body is: " << body_str << std::endl;
+		std::cout << "Received POST /user_register" << std::endl;
 		connection->_response.set(http::field::content_type, "text/json");
 
 		json root;
@@ -140,7 +140,7 @@ LogicSystem::LogicSystem() {
 	// 重置密码 回调逻辑
 	RegPost("/reset_pwd", [](std::shared_ptr<HttpConnection> connection) {
 		auto body_str = beast::buffers_to_string(connection->_request.body().data());
-		std::cout << "receive body is: " << body_str << std::endl;
+		std::cout << "Received POST /reset_pwd" << std::endl;
 		connection->_response.set(http::field::content_type, "text/json");
 
 		json root;
@@ -201,7 +201,7 @@ LogicSystem::LogicSystem() {
 			return true;
 		}
 
-		std::cout << "succeed to update password" << pwd << std::endl;
+		std::cout << "succeed to update password" << std::endl;
 		root["error"] = 0;
 		root["email"] = email;
 		root["user"] = name;
@@ -215,7 +215,7 @@ LogicSystem::LogicSystem() {
 	// 用户登录逻辑
 	RegPost("/user_login", [](std::shared_ptr<HttpConnection> connection) {
 		auto body_str = beast::buffers_to_string(connection->_request.body().data());
-		std::cout << "receive body is: " << body_str << std::endl;
+		std::cout << "Received POST /user_login" << std::endl;
 		connection->_response.set(http::field::content_type, "text/json");
 
 		json root;

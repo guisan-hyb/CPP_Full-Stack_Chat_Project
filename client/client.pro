@@ -166,14 +166,20 @@ DISTFILES += \
 CONFIG += file_copies
 
 # 指定要复制的源文件/文件夹
-config_copy.files = $${PWD}/config.ini
 static_copy.files = $${PWD}/static
 
 # 统一复制到 DESTDIR 指定的输出目录 (即 ./bin 目录下)
-config_copy.path = $${OUT_PWD}/$${DESTDIR}
 static_copy.path = $${OUT_PWD}/$${DESTDIR}
 
-COPIES += config_copy static_copy
+COPIES += static_copy
+
+exists($$PWD/config.ini) {
+    config_copy.files = $${PWD}/config.ini
+    config_copy.path = $${OUT_PWD}/$${DESTDIR}
+    COPIES += config_copy
+} else {
+    warning("client/config.ini 不存在，请从 config.example.ini 复制并填写本地地址")
+}
 
 
 # 设置 MSVC 编译器使用 UTF-8 编码
