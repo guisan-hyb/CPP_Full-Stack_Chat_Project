@@ -111,7 +111,15 @@ void LogicSystem::DealMsg()
 
 void LogicSystem::RegisterCallBacks()
 {
-	_func_callbacks[MSG_CHAT_LOGIN] = [this](std::shared_ptr<CSession> sess, const short& msg_id, const std::string& msg_data) {
+	_func_callbacks[MSG_CHAT_LOGIN] = std::bind(&LogicSystem::HandleChatLogin, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
+	_func_callbacks[ID_SEARCH_USER_REQ] = std::bind(&LogicSystem::HandleSearchUser, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
+	_func_callbacks[ID_ADD_FRIEND_REQ] = std::bind(&LogicSystem::HandleAddFriend, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
+	_func_callbacks[ID_AUTH_FRIEND_REQ] = std::bind(&LogicSystem::HandleAuthFriend, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
+	_func_callbacks[ID_TEXT_CHAT_MSG_REQ] = std::bind(&LogicSystem::HandleTextChatMsg, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
+}
+
+void LogicSystem::HandleChatLogin(std::shared_ptr<CSession> sess, const short& msg_id, const std::string& msg_data)
+{
 		// 提到最前
 		json root;
 		Defer defer([&root, this, sess] {
@@ -245,9 +253,10 @@ void LogicSystem::RegisterCallBacks()
 
 		root["error"] = ErrorCodes::Success;
 		return;
-	};
+}
 
-	_func_callbacks[ID_SEARCH_USER_REQ] = [this](std::shared_ptr<CSession> sess, const short& msg_id, const std::string& msg_data) {
+void LogicSystem::HandleSearchUser(std::shared_ptr<CSession> sess, const short& msg_id, const std::string& msg_data)
+{
 		json root;
 		Defer defer([sess, &root, this] {
 			std::string jsonstr = root.dump();
@@ -290,9 +299,10 @@ void LogicSystem::RegisterCallBacks()
 		else {
 			GetUserByName(uid_str, root);
 		}
-	};
+}
 
-	_func_callbacks[ID_ADD_FRIEND_REQ] = [this](std::shared_ptr<CSession> sess, const short& msg_id, const std::string& msg_data) {
+void LogicSystem::HandleAddFriend(std::shared_ptr<CSession> sess, const short& msg_id, const std::string& msg_data)
+{
 		json root;
 		Defer defer([sess, &root, this]() {
 			std::string jsonstr = root.dump();
@@ -400,9 +410,10 @@ void LogicSystem::RegisterCallBacks()
 		// 发送通知
 		ChatGrpcClient::GetInst()->NotifyAddFriend(to_ip_value, add_req);
 
-	};
+}
 
-	_func_callbacks[ID_AUTH_FRIEND_REQ] = [this](std::shared_ptr<CSession> sess, const short& msg_id, const std::string& msg_data) {
+void LogicSystem::HandleAuthFriend(std::shared_ptr<CSession> sess, const short& msg_id, const std::string& msg_data)
+{
 		json root;
 		Defer defer([this, sess, &root] {
 			std::string jsonstr = root.dump();
@@ -513,9 +524,10 @@ void LogicSystem::RegisterCallBacks()
 		auth_req.set_to_uid(to_uid);
 		// gRPC发送通知
 		ChatGrpcClient::GetInst()->NotifyAuthFriend(to_ip_value, auth_req);
-	};
+}
 
-	_func_callbacks[ID_TEXT_CHAT_MSG_REQ] = [this](std::shared_ptr<CSession> sess, const short& msg_id, const std::string& msg_data) {
+void LogicSystem::HandleTextChatMsg(std::shared_ptr<CSession> sess, const short& msg_id, const std::string& msg_data)
+{
 		json root;
 		Defer defer([this, sess, &root] {
 			std::string jsonstr = root.dump();
@@ -619,9 +631,7 @@ void LogicSystem::RegisterCallBacks()
 		// 发送通知
 		auto rsp = ChatGrpcClient::GetInst()->NotifyTextChatMsg(to_ip_value, text_msg_req);
 		root["error"] = rsp.error();
-	};
 }
-
 
 void LogicSystem::CacheUserProfile(const std::shared_ptr<UserInfo>& user_info) {
 	if (!user_info || user_info->uid <= 0 || user_info->name.empty()) {

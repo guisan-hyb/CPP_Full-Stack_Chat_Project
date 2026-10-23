@@ -27,6 +27,11 @@ private:
 	LogicSystem();
 	void DealMsg();
 	void RegisterCallBacks();
+	void HandleChatLogin(std::shared_ptr<CSession> sess, const short& msg_id, const std::string& msg_data);
+	void HandleSearchUser(std::shared_ptr<CSession> sess, const short& msg_id, const std::string& msg_data);
+	void HandleAddFriend(std::shared_ptr<CSession> sess, const short& msg_id, const std::string& msg_data);
+	void HandleAuthFriend(std::shared_ptr<CSession> sess, const short& msg_id, const std::string& msg_data);
+	void HandleTextChatMsg(std::shared_ptr<CSession> sess, const short& msg_id, const std::string& msg_data);
 	bool GetBaseInfo(const std::string& base_key, int uid, std::shared_ptr<UserInfo>& user_info);
 	void CacheUserProfile(const std::shared_ptr<UserInfo>& user_info);
 	void GetUserByUid(const std::string& uid_str, json& root);
