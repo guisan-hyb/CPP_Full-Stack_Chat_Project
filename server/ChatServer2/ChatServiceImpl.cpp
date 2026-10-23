@@ -14,16 +14,14 @@ ChatServiceImpl::ChatServiceImpl()
 
 Status ChatServiceImpl::NotifyAddFriend(ServerContext* context, const AddFriendReq* request, AddFriendRsp* response)
 {
-	Defer defer([request, response]() {
-		response->set_error(ErrorCodes::Success);
-		response->set_apply_uid(request->apply_uid());
-		response->set_to_uid(request->to_uid());
-	});
+	response->set_apply_uid(request->apply_uid());
+	response->set_to_uid(request->to_uid());
 
 	// 查找用户是否在本服务器
 	auto to_uid = request->to_uid();
 	auto session = UserMgr::GetInst()->GetSession(to_uid);
 	if (!session) {
+		response->set_error(ErrorCodes::Uid_Invalid);
 		return Status::OK;
 	}
 
@@ -40,22 +38,21 @@ Status ChatServiceImpl::NotifyAddFriend(ServerContext* context, const AddFriendR
 	std::string jsonstr = rtvalue.dump();
 	session->Send(jsonstr, ID_NOTIFY_ADD_FRIEND_REQ);
 
+	response->set_error(ErrorCodes::Success);
 	return Status::OK;
 }
 
 Status ChatServiceImpl::NotifyAuthFriend(ServerContext* context, const AuthFriendReq* request, AuthFriendRsp* response)
 {
-	Defer defer([request, response]() {
-		response->set_error(ErrorCodes::Success);
-		response->set_from_uid(request->from_uid());
-		response->set_to_uid(request->to_uid());
-	});
+	response->set_from_uid(request->from_uid());
+	response->set_to_uid(request->to_uid());
 
 	// 查找用户是否在本服务器
 	auto to_uid = request->to_uid();
 	auto from_uid = request->from_uid();
 	auto sess = UserMgr::GetInst()->GetSession(to_uid);
 	if (sess == nullptr) {
+		response->set_error(ErrorCodes::Uid_Invalid);
 		return Status::OK;
 	}
 
@@ -76,10 +73,13 @@ Status ChatServiceImpl::NotifyAuthFriend(ServerContext* context, const AuthFrien
 	}
 	else {
 		rtvalue["error"] = ErrorCodes::Uid_Invalid;
+		response->set_error(ErrorCodes::Uid_Invalid);
+		return Status::OK;
 	}
 
 	std::string return_value = rtvalue.dump();
 	sess->Send(return_value, ID_NOTIFY_AUTH_FRIEND_REQ);
+	response->set_error(ErrorCodes::Success);
 	return Status::OK;
 }
 
@@ -88,7 +88,6 @@ Status ChatServiceImpl::NotifyTextChatMsg(ServerContext* context, const TextChat
 	// 查找是否在服务器
 	auto to_uid = request->to_uid();
 	auto sess = UserMgr::GetInst()->GetSession(to_uid);
-	response->set_error(ErrorCodes::Success);
 
 	// 不在内存则直接返回
 	if (sess == nullptr) {
@@ -115,6 +114,7 @@ Status ChatServiceImpl::NotifyTextChatMsg(ServerContext* context, const TextChat
 	std::string return_str = rtvalue.dump();
 	sess->Send(return_str, ID_NOTIFY_TEXT_CHAT_MSG_REQ);
 
+	response->set_error(ErrorCodes::Success);
 	return Status::OK;
 }
 

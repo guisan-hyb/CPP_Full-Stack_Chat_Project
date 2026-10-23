@@ -79,6 +79,21 @@ bool RedisMgr::Set(const std::string& key, const std::string& value)
 	}
 }
 
+bool RedisMgr::SetWithExpire(const std::string& key, const std::string& value, std::chrono::seconds ttl)
+{
+	try {
+		if (ttl.count() <= 0) {
+			return false;
+		}
+		_redis->set(key, value, ttl);
+		return true;
+	}
+	catch (const std::exception& e) {
+		std::cerr << "SETEX error: " << e.what() << std::endl;
+		return false;
+	}
+}
+
 bool RedisMgr::Del(const std::string& key)
 {
 	try {

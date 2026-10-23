@@ -45,11 +45,10 @@ void CServer::ClearSession(const std::string& session_id)
 
 	UserMgr::GetInst()->RmvUserSession(uid);
 
-	// Logincount -1
-	auto rd_res = RedisMgr::GetInst()->HGet(std::string(LOGIN_COUNT), server_name);
-	int conn_count = rd_res.empty() ? 0 : std::stoi(rd_res);
-	if (conn_count) conn_count--;
-	RedisMgr::GetInst()->HSet(std::string(LOGIN_COUNT), server_name, std::to_string(conn_count));
+	long long conn_count = 0;
+	if (!RedisMgr::GetInst()->HIncrBy(std::string(LOGIN_COUNT), server_name, -1, conn_count)) {
+		std::cerr << "failed to decrement login count for " << server_name << std::endl;
+	}
 
 	// uip_: 该字段只有在 "这条会话真的登陆过"+"归属还是我这台"+"本机没有该uid的其他会话" 时才删除
 	if (has_other_local) return;

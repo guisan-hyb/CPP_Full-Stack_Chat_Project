@@ -33,6 +33,19 @@ StatusServiceImpl::StatusServiceImpl()
 		server.name = cfg[word]["Name"];
 		_servers[server.name] = server;
 	}
+
+	const auto ttl_config = cfg["Auth"]["TokenTtlSeconds"];
+	if (!ttl_config.empty()) {
+		try {
+			const auto ttl = std::stoll(ttl_config);
+			if (ttl > 0) {
+				_token_ttl = std::chrono::seconds(ttl);
+			}
+		}
+		catch (const std::exception&) {
+			std::cerr << "invalid Auth.TokenTtlSeconds, using 1800 seconds" << std::endl;
+		}
+	}
 }
 
 Status StatusServiceImpl::GetChatServer(ServerContext* context, const GetChatServerReq* request, GetChatServerRsp* response)
@@ -45,9 +58,12 @@ Status StatusServiceImpl::GetChatServer(ServerContext* context, const GetChatSer
 	}
 	response->set_host(server.host);
 	response->set_port(server.port);
-	response->set_error(ErrorCodes::Success);
 	response->set_token(generate_unique_string());
-	insertToken(request->uid(), response->token());
+	if (!insertToken(request->uid(), response->token())) {
+		response->set_error(ErrorCodes::RPC_Failed);
+		return Status::CANCELLED;
+	}
+	response->set_error(ErrorCodes::Success);
 	return Status::OK;
 }
 
@@ -78,11 +94,11 @@ Status StatusServiceImpl::Login(ServerContext* context, const LoginReq* request,
 	return Status::OK;
 }
 
-void StatusServiceImpl::insertToken(int uid, const std::string& token)
+bool StatusServiceImpl::insertToken(int uid, const std::string& token)
 {
 	std::string uid_str = std::to_string(uid);
 	std::string token_key = std::string(USERTOKENPREFIX) + uid_str;
-	RedisMgr::GetInst()->Set(token_key, token);
+	return RedisMgr::GetInst()->SetWithExpire(token_key, token, _token_ttl);
 }
 
 ChatServer StatusServiceImpl::getChatServer()

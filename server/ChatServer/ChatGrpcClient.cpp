@@ -66,6 +66,7 @@ AuthFriendRsp ChatGrpcClient::NotifyAuthFriend(const std::string& server_ip, con
 
 	auto find_iter = _pools.find(server_ip);
 	if (find_iter == _pools.end()) {
+		rsp.set_error(ErrorCodes::RPC_Failed);
 		return rsp;
 	}
 

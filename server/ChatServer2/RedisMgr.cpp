@@ -193,6 +193,18 @@ std::string RedisMgr::HGet(const std::string& key, const std::string& hkey)
 	}
 }
 
+bool RedisMgr::HIncrBy(const std::string& key, const std::string& field, long long increment, long long& value)
+{
+	try {
+		value = _redis->hincrby(key, field, increment);
+		return true;
+	}
+	catch (const std::exception& e) {
+		std::cerr << "HINCRBY error: " << e.what() << std::endl;
+		return false;
+	}
+}
+
 bool RedisMgr::HDel(const std::string& key, const std::string& field)
 {
 	try {

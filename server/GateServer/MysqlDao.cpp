@@ -106,7 +106,7 @@ bool MysqlDao::UpdatePasswordHash(const std::string& name, const std::string& pa
 		int updateCount = res.getAffectedItemsCount();
 		std::cout << "Updated rows: " << updateCount << std::endl;
 
-		return true;
+		return updateCount > 0;
 	}
 	catch (const mysqlx::Error& e) {
 		std::cerr << "MySQL Error: " << e.what() << std::endl;

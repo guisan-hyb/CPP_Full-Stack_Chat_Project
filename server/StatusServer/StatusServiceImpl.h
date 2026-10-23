@@ -1,5 +1,6 @@
 #pragma once
 
+#include <chrono>
 #include <grpcpp/grpcpp.h>
 #include "message.grpc.pb.h"
 
@@ -46,11 +47,12 @@ public:
 	Status Login(ServerContext* context, const LoginReq* request, LoginRsp* response) override;
 
 private:
-	void insertToken(int uid, const std::string& token);
+	bool insertToken(int uid, const std::string& token);
 	ChatServer getChatServer();
 
 private:
 	std::unordered_map<std::string, ChatServer> _servers; // 也可以用堆实现
 	std::mutex _server_mtx;
+	std::chrono::seconds _token_ttl{1800};
 };
 

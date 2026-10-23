@@ -148,8 +148,6 @@ void LogicSystem::RegisterCallBacks()
 			return;
 		}
 
-		root["error"] = ErrorCodes::Success;
-
 		// 这里同样也没必要从内存中查找用户信息了, 在redis+mysql中查询即可
 		std::string base_key = std::string(USER_BASE_INFO) + uid_str;
 		auto user_info = std::make_shared<UserInfo>();
@@ -210,28 +208,29 @@ void LogicSystem::RegisterCallBacks()
 
 		// 处理该新连接：
 		auto server_name = ConfigMgr::GetInst()["SelfServer"]["Name"];
-		// 将登陆数量增加
-		auto rd_res = RedisMgr::GetInst()->HGet(std::string(LOGIN_COUNT), server_name);
-		int conn_count = 0;// 默认连接数为0
-		if (!rd_res.empty()) {
-			conn_count = std::stoi(rd_res);
+		long long conn_count = 0;
+		if (!RedisMgr::GetInst()->HIncrBy(std::string(LOGIN_COUNT), server_name, 1, conn_count)) {
+			root["error"] = ErrorCodes::RPC_Failed;
+			return;
 		}
-		conn_count++;
+		std::cout << "server " << server_name << " login count is " << conn_count << std::endl;
 
-		auto conn_str = std::to_string(conn_count);
-		RedisMgr::GetInst()->HSet(std::string(LOGIN_COUNT), server_name, conn_str);
-
+		// 为用户设置登录 ip server 的名字
+		std::string ip_key = std::string(USERIPPREFIX) + uid_str;
+		if (!RedisMgr::GetInst()->Set(ip_key, server_name)) {
+			long long rollback_count = 0;
+			RedisMgr::GetInst()->HIncrBy(std::string(LOGIN_COUNT), server_name, -1, rollback_count);
+			root["error"] = ErrorCodes::RPC_Failed;
+			return;
+		}
 
 		// session绑定用户id
 		sess->SetUserId(uid);
 
-		// 为用户设置登录 ip server 的名字
-		std::string ip_key = std::string(USERIPPREFIX) + uid_str;
-		RedisMgr::GetInst()->Set(ip_key, server_name);
-
 		// uid 和 session 绑定管理, 方便以后踢人操作
 		UserMgr::GetInst()->SetUserSession(uid, sess);
 
+		root["error"] = ErrorCodes::Success;
 		return;
 	};
 
@@ -563,7 +562,6 @@ void LogicSystem::RegisterCallBacks()
 			}
 		}
 
-		root["error"] = ErrorCodes::Success;
 		root["from_uid"] = uid;
 		root["to_uid"] = to_uid;
 		root["text_array"] = arrays;
@@ -582,6 +580,7 @@ void LogicSystem::RegisterCallBacks()
 		if (to_ip_value == self_name) {
 			auto peer_sess = UserMgr::GetInst()->GetSession(to_uid);
 			if (peer_sess) {
+				root["error"] = ErrorCodes::Success;
 				std::string return_str = root.dump();
 				peer_sess->Send(return_str, ID_NOTIFY_TEXT_CHAT_MSG_REQ);
 			}
@@ -606,9 +605,7 @@ void LogicSystem::RegisterCallBacks()
 
 		// 发送通知
 		auto rsp = ChatGrpcClient::GetInst()->NotifyTextChatMsg(to_ip_value, text_msg_req);
-		if (rsp.error() != ErrorCodes::Success) {
-			root["error"] = rsp.error();
-		}
+		root["error"] = rsp.error();
 	};
 }
 
@@ -673,7 +670,6 @@ bool LogicSystem::GetBaseInfo(const std::string& base_key, int uid, std::shared_
 }
 
 void LogicSystem::GetUserByUid(const std::string& uid_str, json& root) {
-	root["error"] = ErrorCodes::Success;
 	std::string base_key = std::string(USER_BASE_INFO) + uid_str;
 
 	std::string info_str = "";
@@ -692,6 +688,7 @@ void LogicSystem::GetUserByUid(const std::string& uid_str, json& root) {
 				<< " icon is " << icon << std::endl;
 
 			if (!name.empty() || !email.empty()) {
+				root["error"] = ErrorCodes::Success;
 				root["uid"] = uid;
 				root["name"] = name;
 				root["email"] = email;
@@ -732,7 +729,7 @@ void LogicSystem::GetUserByUid(const std::string& uid_str, json& root) {
 
 	RedisMgr::GetInst()->Set(base_key, redis_root.dump());
 
-
+	root["error"] = ErrorCodes::Success;
 	root["uid"] = uid;
 	root["name"] = user_info_from_mysql->name;
 	root["email"] = user_info_from_mysql->email;
@@ -743,7 +740,6 @@ void LogicSystem::GetUserByUid(const std::string& uid_str, json& root) {
 }
 
 void LogicSystem::GetUserByName(const std::string& name, json& root) {
-	root["error"] = ErrorCodes::Success;
 	std::string base_key = std::string(NAME_INFO) + name;
 
 	std::string info_str = "";
@@ -762,6 +758,7 @@ void LogicSystem::GetUserByName(const std::string& name, json& root) {
 				<< " icon is " << icon << std::endl;
 
 			if (!name.empty() || !email.empty()) {
+				root["error"] = ErrorCodes::Success;
 				root["uid"] = uid;
 				root["name"] = name;
 				root["email"] = email;
@@ -801,7 +798,7 @@ void LogicSystem::GetUserByName(const std::string& name, json& root) {
 
 	RedisMgr::GetInst()->Set(base_key, redis_root.dump());
 
-
+	root["error"] = ErrorCodes::Success;
 	root["uid"] = user_info_from_mysql->uid;
 	root["name"] = user_info_from_mysql->name;
 	root["email"] = user_info_from_mysql->email;

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "const.h"
+#include <chrono>
 
 class RedisMgr : public Singleton<RedisMgr> 
 {
@@ -11,6 +12,7 @@ public:
 	// String 类型操作
 	bool Get(const std::string& key, std::string& value);
 	bool Set(const std::string& key, const std::string& value);
+	bool SetWithExpire(const std::string& key, const std::string& value, std::chrono::seconds ttl);
 	bool Del(const std::string& key);
 	bool ExistsKey(const std::string& key);
 
