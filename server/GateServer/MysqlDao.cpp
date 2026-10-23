@@ -1,5 +1,6 @@
 #include "MysqlDao.h"
 #include "ConfigMgr.h"
+#include "PasswordHasher.h"
 
 MysqlDao::MysqlDao() {
 	auto& cfg = ConfigMgr::GetInst();
@@ -15,7 +16,7 @@ MysqlDao::~MysqlDao() {
 	_pool->Close();
 }
 
-int MysqlDao::RegUser(const std::string& name, const std::string& email, const std::string& pwd)
+int MysqlDao::RegUser(const std::string& name, const std::string& email, const std::string& password_hash)
 {
 	try {
 		// 获取 Session (相当于获取连接)
@@ -27,7 +28,7 @@ int MysqlDao::RegUser(const std::string& name, const std::string& email, const s
 		sess.sql("CALL reg_user(?,?,?,@result)")
 			.bind(name)
 			.bind(email)
-			.bind(pwd)
+			.bind(password_hash)
 			.execute();
 
 		// 读取会话变量 @result
@@ -90,14 +91,14 @@ bool MysqlDao::CheckEmail(const std::string& name, const std::string& email) {
 	}
 }
 
-bool MysqlDao::UpdatePwd(const std::string& name, const std::string& newpwd) {
+bool MysqlDao::UpdatePasswordHash(const std::string& name, const std::string& password_hash) {
 	try {
 		// 获取 Session
 		mysqlx::Session sess = _pool->getConnection();
 
 		// 执行更新操作，链式绑定参数 (按 SQL 中 ? 的顺序)
-		mysqlx::SqlResult res = sess.sql("UPDATE user SET pwd = ? WHERE name = ?")
-								.bind(newpwd)
+		mysqlx::SqlResult res = sess.sql("UPDATE user SET password_hash = ? WHERE name = ?")
+								.bind(password_hash)
 								.bind(name)
 								.execute();
 
@@ -117,12 +118,12 @@ bool MysqlDao::UpdatePwd(const std::string& name, const std::string& newpwd) {
 	}
 }
 
-bool MysqlDao::CheckPwd(const std::string& email, const std::string& pwd, UserInfo& userInfo) {
+bool MysqlDao::VerifyPassword(const std::string& email, const std::string& password, UserInfo& userInfo) {
 	try {
 		// 获取 Session
 		mysqlx::Session sess = _pool->getConnection();
 
-		mysqlx::SqlResult res = sess.sql("SELECT uid, name, email, pwd FROM user WHERE email = ?")
+		mysqlx::SqlResult res = sess.sql("SELECT uid, name, email, password_hash FROM user WHERE email = ?")
 								.bind(email)
 								.execute();
 
@@ -131,10 +132,8 @@ bool MysqlDao::CheckPwd(const std::string& email, const std::string& pwd, UserIn
 
 		if (!row) return false; // 没查到该用户
 
-		// 获取密码
-		std::string origin_pwd = row[3].isNull() ? "" : row[3].get<std::string>();
-		// 密码比对
-		if (pwd != origin_pwd) {
+		std::string password_hash = row[3].isNull() ? "" : row[3].get<std::string>();
+		if (!PasswordHasher::Verify(password, password_hash)) {
 			return false;
 		}
 
@@ -142,7 +141,6 @@ bool MysqlDao::CheckPwd(const std::string& email, const std::string& pwd, UserIn
 		userInfo.uid = row[0].get<int>();
 		userInfo.name = row[1].isNull() ? "" : row[1].get<std::string>();
 		userInfo.email = row[2].isNull() ? "" : row[2].get<std::string>();
-		userInfo.pwd = origin_pwd;
 
 		return true;
 	}

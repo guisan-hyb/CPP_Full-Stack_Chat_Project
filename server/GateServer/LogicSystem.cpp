@@ -4,6 +4,7 @@
 #include "RedisMgr.h"
 #include "MysqlMgr.h"
 #include "StatusGrpcClient.h"
+#include "PasswordHasher.h"
 
 LogicSystem::LogicSystem() {
 	// Get请求，作测试用
@@ -116,8 +117,17 @@ LogicSystem::LogicSystem() {
 			return true;
 		}*/
 
+		std::string password_hash;
+		if (!PasswordHasher::Hash(pwd, password_hash)) {
+			std::cerr << "password hashing failed" << std::endl;
+			root["error"] = ErrorCodes::Passwd_Invalid;
+			std::string jsonstr = root.dump();
+			beast::ostream(connection->_response.body()) << jsonstr;
+			return true;
+		}
+
 		// 查找数据库判断用户是否存在
-		int uid = MysqlMgr::GetInst()->RegUser(name, email, pwd);
+		int uid = MysqlMgr::GetInst()->RegUser(name, email, password_hash);
 		if (uid == 0 || uid == -1) {
 			std::cout << "user or email exist" << std::endl;
 			root["error"] = ErrorCodes::User_Exist;
@@ -130,8 +140,7 @@ LogicSystem::LogicSystem() {
 		root["error"] = 0;
 		root["email"] = src_root["email"];
 		root["user"] = src_root["user"];
-		root["passwd"] = src_root["passwd"];
-		root["verifycode"] = src_root["verifycode"];
+		root["uid"] = uid;
 		std::string jsonstr = root.dump();
 		beast::ostream(connection->_response.body()) << jsonstr;
 		return true;
@@ -191,8 +200,17 @@ LogicSystem::LogicSystem() {
 			return true;
 		}
 
-		//更新密码为最新密码
-		bool b_up = MysqlMgr::GetInst()->UpdatePwd(name, pwd);
+		std::string password_hash;
+		if (!PasswordHasher::Hash(pwd, password_hash)) {
+			std::cerr << "password hashing failed" << std::endl;
+			root["error"] = ErrorCodes::Passwd_Invalid;
+			std::string jsonstr = root.dump();
+			beast::ostream(connection->_response.body()) << jsonstr;
+			return true;
+		}
+
+		//更新密码哈希
+		bool b_up = MysqlMgr::GetInst()->UpdatePasswordHash(name, password_hash);
 		if (!b_up) {
 			std::cout << "update pwd failed" << std::endl;
 			root["error"] = ErrorCodes::Passwd_Up_Failed;
@@ -205,8 +223,6 @@ LogicSystem::LogicSystem() {
 		root["error"] = 0;
 		root["email"] = email;
 		root["user"] = name;
-		root["passwd"] = pwd;
-		root["verifycode"] = src_root.value("verifycode", std::string(""));
 		std::string jsonstr = root.dump();
 		beast::ostream(connection->_response.body()) << jsonstr;
 		return true;
@@ -236,7 +252,7 @@ LogicSystem::LogicSystem() {
 		auto pwd = src_root.value("passwd", std::string());
 		UserInfo userInfo;
 		// 查询数据库判断用户名和密码是否匹配
-		bool pwd_valid = MysqlMgr::GetInst()->CheckPwd(email, pwd, userInfo);
+		bool pwd_valid = MysqlMgr::GetInst()->VerifyPassword(email, pwd, userInfo);
 		if (!pwd_valid) {
 			std::cout << "user pwd not match" << std::endl;
 			root["error"] = ErrorCodes::Passwd_Invalid;

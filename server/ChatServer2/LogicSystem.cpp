@@ -154,7 +154,6 @@ void LogicSystem::RegisterCallBacks()
 		}
 
 		root["uid"] = uid;
-		root["pwd"] = user_info->pwd;
 		root["name"] = user_info->name;
 		root["email"] = user_info->email;
 		root["nick"] = user_info->nick;
@@ -558,7 +557,6 @@ bool LogicSystem::GetBaseInfo(const std::string& base_key, int uid, std::shared_
 			auto cached = std::make_shared<UserInfo>();
 			cached->uid = src_root.value("uid", uid);
 			cached->name = src_root.value("name", std::string());
-			cached->pwd = src_root.value("pwd", std::string());
 			cached->email = src_root.value("email", std::string());
 			cached->nick = src_root.value("nick", std::string());
 			cached->desc = src_root.value("desc", std::string());
@@ -568,8 +566,8 @@ bool LogicSystem::GetBaseInfo(const std::string& base_key, int uid, std::shared_
 			// empty cache entries were written by the old buggy code, ignore them and fall back to mysql
 			if (!cached->name.empty() || !cached->email.empty()) {
 				user_info = cached;
-				std::cout << "user login uid is  " << user_info->uid << " name  is "
-					<< user_info->name << " pwd is " << user_info->pwd << " email is " << user_info->email << std::endl;
+				std::cout << "user login uid is " << user_info->uid
+					<< " name is " << user_info->name << std::endl;
 				return true;
 			}
 			std::cerr << "empty user info in redis, fallback to mysql, uid: " << uid << std::endl;
@@ -592,13 +590,12 @@ bool LogicSystem::GetBaseInfo(const std::string& base_key, int uid, std::shared_
 	}
 
 	user_info = user_info_from_mysql;
-	std::cout << "user login uid is  " << user_info->uid << " name  is "
-		<< user_info->name << " pwd is " << user_info->pwd << " email is " << user_info->email << std::endl;
+	std::cout << "user login uid is " << user_info->uid
+		<< " name is " << user_info->name << std::endl;
 
 	// 3. write the mysql result back to the redis cache
 	json redis_root;
 	redis_root["uid"] = user_info->uid;
-	redis_root["pwd"] = user_info->pwd;
 	redis_root["name"] = user_info->name;
 	redis_root["email"] = user_info->email;
 	redis_root["nick"] = user_info->nick;
@@ -620,20 +617,18 @@ void LogicSystem::GetUserByUid(const std::string& uid_str, json& root) {
 			auto src_root = json::parse(info_str);
 			auto uid = std::stoi(uid_str);
 			auto name = src_root.value("name", std::string());
-			auto pwd = src_root.value("pwd", std::string());
 			auto email = src_root.value("email", std::string());
 			auto nick = src_root.value("nick", std::string());
 			auto desc = src_root.value("desc", std::string());
 			auto sex = src_root.value("sex", 0);
 			auto icon = src_root.value("icon", std::string());
 
-			std::cout << "user  uid is  " << uid << " name  is "
-				<< name << " pwd is " << pwd << " email is " << email << " icon is " << icon << std::endl;
+			std::cout << "user uid is " << uid << " name is " << name
+				<< " icon is " << icon << std::endl;
 
 			if (!name.empty() || !email.empty()) {
 				root["uid"] = uid;
 				root["name"] = name;
-				root["pwd"] = pwd;
 				root["email"] = email;
 				root["nick"] = nick;
 				root["desc"] = desc;
@@ -663,7 +658,6 @@ void LogicSystem::GetUserByUid(const std::string& uid_str, json& root) {
 
 	json redis_root;
 	redis_root["uid"] = uid;
-	redis_root["pwd"] = user_info_from_mysql->pwd;
 	redis_root["name"] = user_info_from_mysql->name;
 	redis_root["email"] = user_info_from_mysql->email;
 	redis_root["nick"] = user_info_from_mysql->nick;
@@ -675,7 +669,6 @@ void LogicSystem::GetUserByUid(const std::string& uid_str, json& root) {
 
 
 	root["uid"] = uid;
-	root["pwd"] = user_info_from_mysql->pwd;
 	root["name"] = user_info_from_mysql->name;
 	root["email"] = user_info_from_mysql->email;
 	root["nick"] = user_info_from_mysql->nick;
@@ -694,20 +687,18 @@ void LogicSystem::GetUserByName(const std::string& name, json& root) {
 			auto src_root = json::parse(info_str);
 			auto uid = src_root.value("uid", 0);
 			auto name = src_root.value("name", std::string());
-			auto pwd = src_root.value("pwd", std::string());
 			auto email = src_root.value("email", std::string());
 			auto nick = src_root.value("nick", std::string());
 			auto desc = src_root.value("desc", std::string());
 			auto sex = src_root.value("sex", 0);
 			auto icon = src_root.value("icon", std::string());
 
-			std::cout << "user  uid is  " << uid << " name  is "
-				<< name << " pwd is " << pwd << " email is " << email << " icon is " << icon << std::endl;
+			std::cout << "user uid is " << uid << " name is " << name
+				<< " icon is " << icon << std::endl;
 
 			if (!name.empty() || !email.empty()) {
 				root["uid"] = uid;
 				root["name"] = name;
-				root["pwd"] = pwd;
 				root["email"] = email;
 				root["nick"] = nick;
 				root["desc"] = desc;
@@ -736,7 +727,6 @@ void LogicSystem::GetUserByName(const std::string& name, json& root) {
 
 	json redis_root;
 	redis_root["uid"] = user_info_from_mysql->uid;
-	redis_root["pwd"] = user_info_from_mysql->pwd;
 	redis_root["name"] = user_info_from_mysql->name;
 	redis_root["email"] = user_info_from_mysql->email;
 	redis_root["nick"] = user_info_from_mysql->nick;
@@ -748,7 +738,6 @@ void LogicSystem::GetUserByName(const std::string& name, json& root) {
 
 
 	root["uid"] = user_info_from_mysql->uid;
-	root["pwd"] = user_info_from_mysql->pwd;
 	root["name"] = user_info_from_mysql->name;
 	root["email"] = user_info_from_mysql->email;
 	root["nick"] = user_info_from_mysql->nick;

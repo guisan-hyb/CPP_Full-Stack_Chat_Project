@@ -127,7 +127,6 @@ bool ChatServiceImpl::GetBaseInfo(const std::string& base_key, int uid, std::sha
 			auto cached = std::make_shared<UserInfo>();
 			cached->uid = src_root.value("uid", uid);
 			cached->name = src_root.value("name", std::string());
-			cached->pwd = src_root.value("pwd", std::string());
 			cached->email = src_root.value("email", std::string());
 			cached->nick = src_root.value("nick", std::string());
 			cached->desc = src_root.value("desc", std::string());
@@ -137,8 +136,8 @@ bool ChatServiceImpl::GetBaseInfo(const std::string& base_key, int uid, std::sha
 			// empty cache entries were written by the old buggy code, ignore them and fall back to mysql
 			if (!cached->name.empty() || !cached->email.empty()) {
 				user_info = cached;
-				std::cout << "user login uid is  " << user_info->uid << " name  is "
-					<< user_info->name << " pwd is " << user_info->pwd << " email is " << user_info->email << std::endl;
+				std::cout << "user login uid is " << user_info->uid
+					<< " name is " << user_info->name << std::endl;
 				return true;
 			}
 			std::cerr << "empty user info in redis, fallback to mysql, uid: " << uid << std::endl;
@@ -161,13 +160,12 @@ bool ChatServiceImpl::GetBaseInfo(const std::string& base_key, int uid, std::sha
 	}
 
 	user_info = user_info_from_mysql;
-	std::cout << "user login uid is  " << user_info->uid << " name  is "
-		<< user_info->name << " pwd is " << user_info->pwd << " email is " << user_info->email << std::endl;
+	std::cout << "user login uid is " << user_info->uid
+		<< " name is " << user_info->name << std::endl;
 
 	// 3. write the mysql result back to the redis cache
 	json redis_root;
 	redis_root["uid"] = user_info->uid;
-	redis_root["pwd"] = user_info->pwd;
 	redis_root["name"] = user_info->name;
 	redis_root["email"] = user_info->email;
 	redis_root["nick"] = user_info->nick;

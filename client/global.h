@@ -19,9 +19,6 @@
  */
 extern std::function<void(QWidget*)> repolish;
 
-// 简单的动态加密
-extern std::function<QString(QString)> xorString;
-
 /**
  * @brief The ReqId enum 具体功能ID
  */

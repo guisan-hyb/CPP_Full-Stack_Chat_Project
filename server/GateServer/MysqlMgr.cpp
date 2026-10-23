@@ -9,8 +9,8 @@ MysqlMgr::~MysqlMgr()
 
 }
 
-int MysqlMgr::RegUser(const std::string& name, const std::string& email, const std::string& pwd) {
-	return _dao.RegUser(name, email, pwd);
+int MysqlMgr::RegUser(const std::string& name, const std::string& email, const std::string& password_hash) {
+	return _dao.RegUser(name, email, password_hash);
 }
 
 bool MysqlMgr::CheckEmail(const std::string& name, const std::string& email)
@@ -18,13 +18,13 @@ bool MysqlMgr::CheckEmail(const std::string& name, const std::string& email)
 	return _dao.CheckEmail(name, email);
 }
 
-bool MysqlMgr::UpdatePwd(const std::string& name, const std::string& newpwd)
+bool MysqlMgr::UpdatePasswordHash(const std::string& name, const std::string& password_hash)
 {
-	return _dao.UpdatePwd(name, newpwd);
+	return _dao.UpdatePasswordHash(name, password_hash);
 }
 
-bool MysqlMgr::CheckPwd(const std::string& email, const std::string& pwd, UserInfo& userInfo)
+bool MysqlMgr::VerifyPassword(const std::string& email, const std::string& password, UserInfo& userInfo)
 {
-	return _dao.CheckPwd(email, pwd, userInfo);
+	return _dao.VerifyPassword(email, password, userInfo);
 }
 

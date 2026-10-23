@@ -185,7 +185,7 @@ void LoginDialog::on_login_btn_clicked()
     // 发送http请求登录
     QJsonObject json_obj;
     json_obj["email"] = email;
-    json_obj["passwd"] = xorString(pwd);
+    json_obj["passwd"] = pwd;
     HttpMgr::GetInstance()->PostHttpReq(QUrl(gate_url_prefix+"/user_login"),
                                         json_obj,ReqId::ID_LOGIN_USER,Modules::MOD_LOGIN);
 }
