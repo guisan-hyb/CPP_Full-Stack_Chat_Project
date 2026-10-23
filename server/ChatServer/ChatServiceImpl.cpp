@@ -1,6 +1,7 @@
 #include "ChatServiceImpl.h"
 #include "UserMgr.h"
 #include "CSession.h"
+#include "ConfigMgr.h"
 #include "MysqlMgr.h"
 #include "RedisMgr.h"
 #include <nlohmann/json.hpp>
@@ -9,7 +10,18 @@ using json = nlohmann::json;
 
 ChatServiceImpl::ChatServiceImpl()
 {
-
+	const auto ttl_config = ConfigMgr::GetInst()["Cache"]["UserProfileTtlSeconds"];
+	if (!ttl_config.empty()) {
+		try {
+			const auto ttl = std::stoll(ttl_config);
+			if (ttl > 0) {
+				_user_profile_ttl = std::chrono::seconds(ttl);
+			}
+		}
+		catch (const std::exception&) {
+			std::cerr << "invalid Cache.UserProfileTtlSeconds, using 600 seconds" << std::endl;
+		}
+	}
 }
 
 Status ChatServiceImpl::NotifyAddFriend(ServerContext* context, const AddFriendReq* request, AddFriendRsp* response)
@@ -134,7 +146,7 @@ bool ChatServiceImpl::GetBaseInfo(const std::string& base_key, int uid, std::sha
 			cached->icon = src_root.value("icon", std::string());
 
 			// empty cache entries were written by the old buggy code, ignore them and fall back to mysql
-			if (!cached->name.empty() || !cached->email.empty()) {
+			if (cached->uid == uid && (!cached->name.empty() || !cached->email.empty())) {
 				user_info = cached;
 				std::cout << "user login uid is " << user_info->uid
 					<< " name is " << user_info->name << std::endl;
@@ -163,18 +175,33 @@ bool ChatServiceImpl::GetBaseInfo(const std::string& base_key, int uid, std::sha
 	std::cout << "user login uid is " << user_info->uid
 		<< " name is " << user_info->name << std::endl;
 
-	// 3. write the mysql result back to the redis cache
-	json redis_root;
-	redis_root["uid"] = user_info->uid;
-	redis_root["name"] = user_info->name;
-	redis_root["email"] = user_info->email;
-	redis_root["nick"] = user_info->nick;
-	redis_root["desc"] = user_info->desc;
-	redis_root["sex"] = user_info->sex;
-	redis_root["icon"] = user_info->icon;
-	RedisMgr::GetInst()->Set(base_key, redis_root.dump());
+	CacheUserProfile(user_info);
 
 	return true;
+}
+
+void ChatServiceImpl::CacheUserProfile(const std::shared_ptr<UserInfo>& user_info)
+{
+	if (!user_info || user_info->uid <= 0 || user_info->name.empty()) {
+		return;
+	}
+
+	json profile;
+	profile["uid"] = user_info->uid;
+	profile["name"] = user_info->name;
+	profile["email"] = user_info->email;
+	profile["nick"] = user_info->nick;
+	profile["desc"] = user_info->desc;
+	profile["sex"] = user_info->sex;
+	profile["icon"] = user_info->icon;
+
+	const auto profile_key = std::string(USER_BASE_INFO) + std::to_string(user_info->uid);
+	if (!RedisMgr::GetInst()->SetWithExpire(profile_key, profile.dump(), _user_profile_ttl)) {
+		return;
+	}
+
+	const auto name_key = std::string(NAME_INFO) + user_info->name;
+	RedisMgr::GetInst()->SetWithExpire(name_key, std::to_string(user_info->uid), _user_profile_ttl);
 }
 
 void ChatServiceImpl::RegisterServer(std::shared_ptr<CServer> p_server)

@@ -13,6 +13,19 @@
 LogicSystem::LogicSystem()
 	: _b_stop(false)
 {
+	const auto ttl_config = ConfigMgr::GetInst()["Cache"]["UserProfileTtlSeconds"];
+	if (!ttl_config.empty()) {
+		try {
+			const auto ttl = std::stoll(ttl_config);
+			if (ttl > 0) {
+				_user_profile_ttl = std::chrono::seconds(ttl);
+			}
+		}
+		catch (const std::exception&) {
+			std::cerr << "invalid Cache.UserProfileTtlSeconds, using 600 seconds" << std::endl;
+		}
+	}
+
 	RegisterCallBacks();
 	_work_thread = std::thread(&LogicSystem::DealMsg, this);
 }
@@ -610,12 +623,34 @@ void LogicSystem::RegisterCallBacks()
 }
 
 
+void LogicSystem::CacheUserProfile(const std::shared_ptr<UserInfo>& user_info) {
+	if (!user_info || user_info->uid <= 0 || user_info->name.empty()) {
+		return;
+	}
+
+	json profile;
+	profile["uid"] = user_info->uid;
+	profile["name"] = user_info->name;
+	profile["email"] = user_info->email;
+	profile["nick"] = user_info->nick;
+	profile["desc"] = user_info->desc;
+	profile["sex"] = user_info->sex;
+	profile["icon"] = user_info->icon;
+
+	const auto profile_key = std::string(USER_BASE_INFO) + std::to_string(user_info->uid);
+	if (!RedisMgr::GetInst()->SetWithExpire(profile_key, profile.dump(), _user_profile_ttl)) {
+		return;
+	}
+
+	const auto name_key = std::string(NAME_INFO) + user_info->name;
+	RedisMgr::GetInst()->SetWithExpire(name_key, std::to_string(user_info->uid), _user_profile_ttl);
+}
+
 bool LogicSystem::GetBaseInfo(const std::string& base_key, int uid, std::shared_ptr<UserInfo>& user_info) {
-	// 1. try redis cache first
-	std::string info_str = "";
+	std::string info_str;
 	if (RedisMgr::GetInst()->Get(base_key, info_str) && !info_str.empty()) {
 		try {
-			auto src_root = json::parse(info_str);
+			const auto src_root = json::parse(info_str);
 			auto cached = std::make_shared<UserInfo>();
 			cached->uid = src_root.value("uid", uid);
 			cached->name = src_root.value("name", std::string());
@@ -625,187 +660,85 @@ bool LogicSystem::GetBaseInfo(const std::string& base_key, int uid, std::shared_
 			cached->sex = src_root.value("sex", 0);
 			cached->icon = src_root.value("icon", std::string());
 
-			// empty cache entries were written by the old buggy code, ignore them and fall back to mysql
-			if (!cached->name.empty() || !cached->email.empty()) {
+			if (cached->uid == uid && (!cached->name.empty() || !cached->email.empty())) {
 				user_info = cached;
-				std::cout << "user login uid is " << user_info->uid
-					<< " name is " << user_info->name << std::endl;
 				return true;
 			}
-			std::cerr << "empty user info in redis, fallback to mysql, uid: " << uid << std::endl;
 		}
 		catch (const json::exception& e) {
-			std::cerr << "info_str parse error: " << e.what() << std::endl;
+			std::cerr << "user profile cache parse error: " << e.what() << std::endl;
 		}
 	}
 
-	// 2. not in redis (or the cached value is invalid), load from mysql
-	auto user_info_from_mysql = MysqlMgr::GetInst()->GetUser(uid);
-	if (user_info_from_mysql == nullptr) {
+	auto db_user = MysqlMgr::GetInst()->GetUser(uid);
+	if (!db_user || (db_user->name.empty() && db_user->email.empty())) {
 		return false;
 	}
 
-	// mysql returns an empty row when the uid does not exist, treat it as user not found
-	if (user_info_from_mysql->name.empty() && user_info_from_mysql->email.empty()) {
-		std::cerr << "user not found in mysql, uid: " << uid << std::endl;
-		return false;
-	}
-
-	user_info = user_info_from_mysql;
-	std::cout << "user login uid is " << user_info->uid
-		<< " name is " << user_info->name << std::endl;
-
-	// 3. write the mysql result back to the redis cache
-	json redis_root;
-	redis_root["uid"] = user_info->uid;
-	redis_root["name"] = user_info->name;
-	redis_root["email"] = user_info->email;
-	redis_root["nick"] = user_info->nick;
-	redis_root["desc"] = user_info->desc;
-	redis_root["sex"] = user_info->sex;
-	redis_root["icon"] = user_info->icon;
-	RedisMgr::GetInst()->Set(base_key, redis_root.dump());
-
+	user_info = db_user;
+	CacheUserProfile(user_info);
 	return true;
 }
 
 void LogicSystem::GetUserByUid(const std::string& uid_str, json& root) {
-	std::string base_key = std::string(USER_BASE_INFO) + uid_str;
-
-	std::string info_str = "";
-	if (RedisMgr::GetInst()->Get(base_key, info_str) && !info_str.empty()) {
-		try {
-			auto src_root = json::parse(info_str);
-			auto uid = std::stoi(uid_str);
-			auto name = src_root.value("name", std::string());
-			auto email = src_root.value("email", std::string());
-			auto nick = src_root.value("nick", std::string());
-			auto desc = src_root.value("desc", std::string());
-			auto sex = src_root.value("sex", 0);
-			auto icon = src_root.value("icon", std::string());
-
-			std::cout << "user uid is " << uid << " name is " << name
-				<< " icon is " << icon << std::endl;
-
-			if (!name.empty() || !email.empty()) {
-				root["error"] = ErrorCodes::Success;
-				root["uid"] = uid;
-				root["name"] = name;
-				root["email"] = email;
-				root["nick"] = nick;
-				root["desc"] = desc;
-				root["sex"] = sex;
-				root["icon"] = icon;
-
-				return;
-			}
-			
-			std::cerr << "empty user info in redis, fallback to mysql, uid: " << uid << std::endl;
-		}
-		catch (const json::exception& e) {
-			std::cerr << "info_str parse error: " << e.what() << std::endl;
-		}
-	}
-
-	// 查 mysql
-	int uid = std::stoi(uid_str);
-	auto user_info_from_mysql = MysqlMgr::GetInst()->GetUser(uid);
-	if (user_info_from_mysql == nullptr ||
-		(user_info_from_mysql->name.empty() && user_info_from_mysql->email.empty())) {
-		// 用户不存在时必须带上错误码, 否则客户端会把空用户当成"查到了"
-		std::cerr << "user not found, uid: " << uid << std::endl;
+	if (!isPureDigit(uid_str)) {
 		root["error"] = ErrorCodes::Uid_Invalid;
 		return;
 	}
 
-	json redis_root;
-	redis_root["uid"] = uid;
-	redis_root["name"] = user_info_from_mysql->name;
-	redis_root["email"] = user_info_from_mysql->email;
-	redis_root["nick"] = user_info_from_mysql->nick;
-	redis_root["desc"] = user_info_from_mysql->desc;
-	redis_root["sex"] = user_info_from_mysql->sex;
-	redis_root["icon"] = user_info_from_mysql->icon;
-
-	RedisMgr::GetInst()->Set(base_key, redis_root.dump());
+	const int uid = std::stoi(uid_str);
+	std::shared_ptr<UserInfo> user_info;
+	const auto base_key = std::string(USER_BASE_INFO) + uid_str;
+	if (!GetBaseInfo(base_key, uid, user_info)) {
+		root["error"] = ErrorCodes::Uid_Invalid;
+		return;
+	}
 
 	root["error"] = ErrorCodes::Success;
-	root["uid"] = uid;
-	root["name"] = user_info_from_mysql->name;
-	root["email"] = user_info_from_mysql->email;
-	root["nick"] = user_info_from_mysql->nick;
-	root["desc"] = user_info_from_mysql->desc;
-	root["sex"] = user_info_from_mysql->sex;
-	root["icon"] = user_info_from_mysql->icon;
+	root["uid"] = user_info->uid;
+	root["name"] = user_info->name;
+	root["email"] = user_info->email;
+	root["nick"] = user_info->nick;
+	root["desc"] = user_info->desc;
+	root["sex"] = user_info->sex;
+	root["icon"] = user_info->icon;
 }
 
 void LogicSystem::GetUserByName(const std::string& name, json& root) {
-	std::string base_key = std::string(NAME_INFO) + name;
-
-	std::string info_str = "";
-	if (RedisMgr::GetInst()->Get(base_key, info_str) && !info_str.empty()) {
-		try {
-			auto src_root = json::parse(info_str);
-			auto uid = src_root.value("uid", 0);
-			auto name = src_root.value("name", std::string());
-			auto email = src_root.value("email", std::string());
-			auto nick = src_root.value("nick", std::string());
-			auto desc = src_root.value("desc", std::string());
-			auto sex = src_root.value("sex", 0);
-			auto icon = src_root.value("icon", std::string());
-
-			std::cout << "user uid is " << uid << " name is " << name
-				<< " icon is " << icon << std::endl;
-
-			if (!name.empty() || !email.empty()) {
-				root["error"] = ErrorCodes::Success;
-				root["uid"] = uid;
-				root["name"] = name;
-				root["email"] = email;
-				root["nick"] = nick;
-				root["desc"] = desc;
-				root["sex"] = sex;
-				root["icon"] = icon;
-
-				return;
-			}
-
-			std::cerr << "empty user info in redis, fallback to mysql, uid: " << uid << std::endl;
-		}
-		catch (const json::exception& e) {
-			std::cerr << "info_str parse error: " << e.what() << std::endl;
+	const auto name_key = std::string(NAME_INFO) + name;
+	std::string cached_uid;
+	if (RedisMgr::GetInst()->Get(name_key, cached_uid) && isPureDigit(cached_uid)) {
+		const int uid = std::stoi(cached_uid);
+		std::shared_ptr<UserInfo> user_info;
+		if (GetBaseInfo(std::string(USER_BASE_INFO) + cached_uid, uid, user_info) &&
+			user_info->name == name) {
+			root["error"] = ErrorCodes::Success;
+			root["uid"] = user_info->uid;
+			root["name"] = user_info->name;
+			root["email"] = user_info->email;
+			root["nick"] = user_info->nick;
+			root["desc"] = user_info->desc;
+			root["sex"] = user_info->sex;
+			root["icon"] = user_info->icon;
+			return;
 		}
 	}
 
-	// 查 mysql
-	auto user_info_from_mysql = MysqlMgr::GetInst()->GetUser(name);
-	if (user_info_from_mysql == nullptr ||
-		(user_info_from_mysql->name.empty() && user_info_from_mysql->email.empty())) {
-		// 用户不存在时必须带上错误码, 否则客户端会把空用户当成"查到了"
-		std::cerr << "user not found, name: " << name << std::endl;
+	auto user_info = MysqlMgr::GetInst()->GetUser(name);
+	if (!user_info || (user_info->name.empty() && user_info->email.empty())) {
 		root["error"] = ErrorCodes::Uid_Invalid;
 		return;
 	}
 
-	json redis_root;
-	redis_root["uid"] = user_info_from_mysql->uid;
-	redis_root["name"] = user_info_from_mysql->name;
-	redis_root["email"] = user_info_from_mysql->email;
-	redis_root["nick"] = user_info_from_mysql->nick;
-	redis_root["desc"] = user_info_from_mysql->desc;
-	redis_root["sex"] = user_info_from_mysql->sex;
-	redis_root["icon"] = user_info_from_mysql->icon;
-
-	RedisMgr::GetInst()->Set(base_key, redis_root.dump());
-
+	CacheUserProfile(user_info);
 	root["error"] = ErrorCodes::Success;
-	root["uid"] = user_info_from_mysql->uid;
-	root["name"] = user_info_from_mysql->name;
-	root["email"] = user_info_from_mysql->email;
-	root["nick"] = user_info_from_mysql->nick;
-	root["desc"] = user_info_from_mysql->desc;
-	root["sex"] = user_info_from_mysql->sex;
-	root["icon"] = user_info_from_mysql->icon;
+	root["uid"] = user_info->uid;
+	root["name"] = user_info->name;
+	root["email"] = user_info->email;
+	root["nick"] = user_info->nick;
+	root["desc"] = user_info->desc;
+	root["sex"] = user_info->sex;
+	root["icon"] = user_info->icon;
 }
 
 

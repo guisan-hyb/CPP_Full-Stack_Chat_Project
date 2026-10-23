@@ -1,5 +1,6 @@
 #pragma once
 
+#include <chrono>
 #include "Singleton.h"
 #include <queue>
 #include <thread>
@@ -27,6 +28,7 @@ private:
 	void DealMsg();
 	void RegisterCallBacks();
 	bool GetBaseInfo(const std::string& base_key, int uid, std::shared_ptr<UserInfo>& user_info);
+	void CacheUserProfile(const std::shared_ptr<UserInfo>& user_info);
 	void GetUserByUid(const std::string& uid_str, json& root);
 	void GetUserByName(const std::string& name, json& root);
 	bool isPureDigit(const std::string& s);
@@ -39,6 +41,7 @@ private:
 	std::mutex _mtx;
 	std::condition_variable _cond;
 	std::atomic<bool> _b_stop;
+	std::chrono::seconds _user_profile_ttl{600};
 
 	std::unordered_map<short, FuncCallBack> _func_callbacks;
 };

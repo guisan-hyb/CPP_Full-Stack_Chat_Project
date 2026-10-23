@@ -1,5 +1,6 @@
 #pragma once
 
+#include <chrono>
 #include <grpcpp/grpcpp.h>
 #include <message.grpc.pb.h>
 #include <message.pb.h>
@@ -40,5 +41,7 @@ public:
     void RegisterServer(std::shared_ptr<CServer> p_server);
     
 private:
+	void CacheUserProfile(const std::shared_ptr<UserInfo>& user_info);
 	std::shared_ptr<CServer> _p_server;
+	std::chrono::seconds _user_profile_ttl{600};
 };

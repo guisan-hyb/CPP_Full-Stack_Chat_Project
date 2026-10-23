@@ -2,6 +2,7 @@
 
 #include "Singleton.h"
 #include <memory>
+#include <chrono>
 #include <sw/redis++/redis++.h>
 
 class RedisMgr : public Singleton<RedisMgr>
@@ -12,6 +13,7 @@ public:
 
 	bool Get(const std::string& key, std::string& val);
 	bool Set(const std::string& key, const std::string& val);
+	bool SetWithExpire(const std::string& key, const std::string& val, std::chrono::seconds ttl);
 	bool Del(const std::string& key);
 	bool ExistsKey(const std::string& key);
 

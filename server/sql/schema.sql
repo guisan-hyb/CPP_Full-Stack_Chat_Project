@@ -33,7 +33,8 @@ CREATE TABLE IF NOT EXISTS `friend_apply` (
     `to_uid` INT NOT NULL,
     `status` SMALLINT NOT NULL DEFAULT 0,
     PRIMARY KEY (`id`),
-    UNIQUE KEY `from_to` (`from_uid`, `to_uid`)
+    UNIQUE KEY `from_to` (`from_uid`, `to_uid`),
+    KEY `idx_apply_recipient` (`to_uid`, `status`, `id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 CREATE TABLE IF NOT EXISTS `friend` (
@@ -42,7 +43,8 @@ CREATE TABLE IF NOT EXISTS `friend` (
     `friend_id` INT NOT NULL,
     `back` VARCHAR(255) DEFAULT '',
     PRIMARY KEY (`id`),
-    UNIQUE KEY `self_friend` (`self_id`, `friend_id`)
+    UNIQUE KEY `self_friend` (`self_id`, `friend_id`),
+    KEY `idx_friend_reverse` (`friend_id`, `self_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 DROP PROCEDURE IF EXISTS `reg_user`;

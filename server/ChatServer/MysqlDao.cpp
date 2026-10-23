@@ -258,21 +258,31 @@ bool MysqlDao::GetFriendList(int self_id, std::vector<std::shared_ptr<UserInfo>>
 	try {
 		mysqlx::Session sess = _pool->getConnection();
 		mysqlx::SqlResult res = sess.sql(R"(
-			SELECT * 
-			FROM friend
-			WHERE self_id = ?
+			SELECT
+				u.uid,
+				u.name,
+				u.email,
+				u.nick,
+				u.`desc`,
+				u.sex,
+				u.icon,
+				f.back
+			FROM friend f
+			JOIN user u ON u.uid = f.friend_id
+			WHERE f.self_id = ?
+			ORDER BY f.id ASC
 		)").bind(self_id).execute();
 
 		for (mysqlx::Row& row : res) {
-			auto friend_id = row[2].isNull() ? 0 : row[2].get<int>();
-			auto back = row[3].isNull() ? "" : row[3].get<std::string>();
-			// 进一步查询 friend_id 对应的信息
-			auto user_info = GetUser(friend_id);
-			if (user_info == nullptr) {
-				continue;
-			}
-
-			user_info->back = user_info->name;
+			auto user_info = std::make_shared<UserInfo>();
+			user_info->uid = row[0].isNull() ? 0 : row[0].get<int>();
+			user_info->name = row[1].isNull() ? "" : row[1].get<std::string>();
+			user_info->email = row[2].isNull() ? "" : row[2].get<std::string>();
+			user_info->nick = row[3].isNull() ? "" : row[3].get<std::string>();
+			user_info->desc = row[4].isNull() ? "" : row[4].get<std::string>();
+			user_info->sex = row[5].isNull() ? 0 : row[5].get<int>();
+			user_info->icon = row[6].isNull() ? "" : row[6].get<std::string>();
+			user_info->back = row[7].isNull() ? "" : row[7].get<std::string>();
 			user_list.push_back(user_info);
 		}
 
