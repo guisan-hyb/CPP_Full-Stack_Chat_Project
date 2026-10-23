@@ -2,12 +2,14 @@ const assert = require('assert');
 const http = require('http');
 const net = require('net');
 const Redis = require('../VerifyServer/node_modules/ioredis');
-const cfg = require('../VerifyServer/config');
 
 // Run after StatusServer, GateServer and both ChatServers are listening.
 // The script creates unique test users; clean test data afterwards when rebuilding a demo database.
 const GATE_HOST = '127.0.0.1';
 const GATE_PORT = 8080;
+const REDIS_HOST = process.env.REDIS_HOST || '127.0.0.1';
+const REDIS_PORT = Number(process.env.REDIS_PORT || 6379);
+const REDIS_PASSWORD = process.env.REDIS_PASSWORD || undefined;
 const MSG_CHAT_LOGIN = 1005;
 const MSG_CHAT_LOGIN_RSP = 1006;
 const ID_SEARCH_USER_REQ = 1007;
@@ -182,9 +184,12 @@ async function register(redis, password, suffix, role) {
 async function main() {
     const suffix = Date.now().toString();
     const redis = new Redis({
-        host: cfg.redis_host,
-        port: cfg.redis_port,
-        password: cfg.redis_passwd || undefined
+        host: REDIS_HOST,
+        port: REDIS_PORT,
+        password: REDIS_PASSWORD,
+        connectTimeout: 3000,
+        maxRetriesPerRequest: 1,
+        retryStrategy: () => null
     });
 
     const peers = [];
@@ -202,6 +207,9 @@ async function main() {
         });
         assert.strictEqual(aliceLogin.error, 0, `alice login failed: ${JSON.stringify(aliceLogin)}`);
         assert.strictEqual(bobLogin.error, 0, `bob login failed: ${JSON.stringify(bobLogin)}`);
+
+        const tokenTtl = await redis.ttl(`utoken_${alice.uid}`);
+        assert.ok(tokenTtl > 0 && tokenTtl <= 1800, `unexpected token TTL: ${tokenTtl}`);
 
         const unauthenticated = new TcpPeer();
         peers.push(unauthenticated);
@@ -222,6 +230,11 @@ async function main() {
         const bobChatLogin = await bobPeer.login(bob.uid, bobLogin.token);
         assert.strictEqual(aliceChatLogin.error, 0, 'alice TCP login failed');
         assert.strictEqual(bobChatLogin.error, 0, 'bob TCP login failed');
+
+        const loginCounts = await redis.hgetall('logincount');
+        const totalLoginCount = Object.values(loginCounts)
+            .reduce((total, count) => total + Number(count), 0);
+        assert.strictEqual(totalLoginCount, 2, `unexpected online count: ${JSON.stringify(loginCounts)}`);
 
         const beforeFriend = {
             to_uid: bob.uid,
@@ -275,6 +288,15 @@ async function main() {
             },
             ID_TEXT_CHAT_MSG_RSP);
         assert.strictEqual(spoofed.error, TOKEN_INVALID, 'spoofed from_uid must be rejected');
+
+        for (const peer of peers) {
+            peer.close();
+        }
+        await new Promise(resolve => setTimeout(resolve, 500));
+        const finalCounts = await redis.hgetall('logincount');
+        const finalLoginCount = Object.values(finalCounts)
+            .reduce((total, count) => total + Number(count), 0);
+        assert.strictEqual(finalLoginCount, 0, `online count did not return to zero: ${JSON.stringify(finalCounts)}`);
 
         console.log('P0 security smoke test passed');
     } finally {
