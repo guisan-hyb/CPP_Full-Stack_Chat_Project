@@ -459,8 +459,6 @@ void ApplyFriend::SlotApplySure()
 
     // 发送请求逻辑
     QJsonObject jsonObj;
-    auto uid = UserMgr::GetInstance()->GetUid();
-    jsonObj["uid"] = uid;
 
     auto name = ui->name_ed->text();
     if (name.isEmpty()) {

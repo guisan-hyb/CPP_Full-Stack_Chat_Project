@@ -121,7 +121,6 @@ void ChatPage::on_send_btn_clicked()
 
             pBubble = new TextBubble(role, msgList[i].content);
             if(txt_size + msgList[i].content.length()> 1024){
-                textObj["from_uid"] = user_info->_uid;
                 textObj["to_uid"] = _user_info->_uid;
                 textObj["text_array"] = textArray;
                 QJsonDocument doc(textObj);
@@ -166,7 +165,6 @@ void ChatPage::on_send_btn_clicked()
     qDebug() << "textArray is " << textArray ;
     //发送给服务器
     textObj["text_array"] = textArray;
-    textObj["from_uid"] = user_info->_uid;
     textObj["to_uid"] = _user_info->_uid;
     QJsonDocument doc(textObj);
     QByteArray jsonData = doc.toJson(QJsonDocument::Compact);

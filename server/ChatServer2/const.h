@@ -17,6 +17,8 @@ enum ErrorCodes {
 	Uid_Invalid = 1011, // uid无效
 	CREATE_CHAT_FAILED = 1012, //创建聊天失败
 	LOAD_CHAT_FAILED = 1013, //加载聊天失败
+	Database_Failed = 1014, //数据库操作失败
+	Friend_Required = 1015, //发送双方不是好友
 };
 
 

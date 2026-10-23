@@ -261,7 +261,7 @@ void TcpMgr::initHandlers()
         int from_uid = jsonObj["from_uid"].toInt();
         QString name = jsonObj["name"].toString();
         QString nick = jsonObj["nick"].toString();
-        QString icon = jsonObj["nick"].toString();
+        QString icon = jsonObj["icon"].toString();
         int sex = jsonObj["sex"].toInt();
 
         auto auth_info = std::make_shared<AuthInfo>(from_uid,name,nick,icon,sex);

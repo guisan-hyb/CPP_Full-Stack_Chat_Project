@@ -123,6 +123,12 @@ void LogicSystem::RegisterCallBacks()
 			return;                                          // 回 {"error":1001}
 		}
 
+		if (sess->GetUserId() > 0) {
+			root["error"] = ErrorCodes::Token_Invalid;
+			std::cerr << "chat login rejected: session already authenticated" << std::endl;
+			return;
+		}
+
 		int uid = src_root["uid"].get<int>();
 		std::string token = src_root["token"].get<std::string>();
 		if (uid <= 0 || token.empty()) { root["error"] = ErrorCodes::Uid_Invalid; return; }
@@ -253,6 +259,11 @@ void LogicSystem::RegisterCallBacks()
 			return;
 		}
 
+		if (sess->GetUserId() <= 0) {
+			root["error"] = ErrorCodes::Token_Invalid;
+			return;
+		}
+
 		std::string uid_str = src_root["uid"].get<std::string>();// 客户端传来的可能是uid, 也可能是用户名称
 		if (uid_str.empty()) {
 			std::cerr << "search user: empty uid/name" << std::endl;
@@ -287,23 +298,46 @@ void LogicSystem::RegisterCallBacks()
 		}
 
 		if (!src_root.is_object() ||
-			!src_root.contains("uid") || !src_root["uid"].is_number_integer()) {
+			!src_root.contains("to_uid") || !src_root["to_uid"].is_number_integer()) {
 			std::cerr << "Add Friend payload error: " << msg_data << std::endl;
 			root["error"] = ErrorCodes::Error_Json;
 			return;
 		}
 
-		auto uid = src_root.value("uid", 0);
-		auto applyname = src_root.value("applyname", std::string());
-		auto backname = src_root.value("backname", std::string());
-		auto to_uid = src_root.value("to_uid", 0);
+		int uid = sess->GetUserId();
+		if (uid <= 0) {
+			root["error"] = ErrorCodes::Token_Invalid;
+			return;
+		}
+
+		int to_uid = src_root["to_uid"].get<int>();
+		if (to_uid <= 0 || to_uid == uid) {
+			root["error"] = ErrorCodes::Uid_Invalid;
+			return;
+		}
+
+		std::string applyname = src_root.value("applyname", std::string());
+		std::string backname = src_root.value("backname", std::string());
 		std::cout << "user login uid is: " << uid << " applyname is: " << applyname << " backname is: " << backname
 			<< " to_uid is: " << to_uid << std::endl;
 
-		root["error"] = ErrorCodes::Success;
+		if (MysqlMgr::GetInst()->GetUser(to_uid) == nullptr) {
+			root["error"] = ErrorCodes::Uid_Invalid;
+			return;
+		}
+
+		if (MysqlMgr::GetInst()->AreFriends(uid, to_uid)) {
+			root["error"] = ErrorCodes::User_Exist;
+			return;
+		}
 
 		// 添加到数据库
-		MysqlMgr::GetInst()->AddFriendApply(uid, to_uid);
+		if (!MysqlMgr::GetInst()->AddFriendApply(uid, to_uid)) {
+			root["error"] = ErrorCodes::Database_Failed;
+			return;
+		}
+
+		root["error"] = ErrorCodes::Success;
 
 		// 查询redis，查找to_uid对应的server_ip
 		auto to_uid_str = std::to_string(to_uid);
@@ -374,18 +408,27 @@ void LogicSystem::RegisterCallBacks()
 		}
 		
 		if (!src_root.is_object() ||
-			!src_root.contains("from_uid") || !src_root["from_uid"].is_number_integer()) {
+			!src_root.contains("to_uid") || !src_root["to_uid"].is_number_integer()) {
 			std::cerr << "Authen friend payload error: " << msg_data << std::endl;
 			root["error"] = ErrorCodes::Error_Json;
 			return;
 		}
 
-		auto uid = src_root.value("from_uid", 0);
-		auto to_uid = src_root.value("to_uid", 0);
-		auto back_name = src_root.value("back", "");
+		int uid = sess->GetUserId();
+		if (uid <= 0) {
+			root["error"] = ErrorCodes::Token_Invalid;
+			return;
+		}
+
+		int to_uid = src_root["to_uid"].get<int>();
+		if (to_uid <= 0 || to_uid == uid) {
+			root["error"] = ErrorCodes::Uid_Invalid;
+			return;
+		}
+
+		std::string back_name = src_root.value("back", std::string());
 		std::cout << "from " << uid << "auth friend to " << to_uid << std::endl;
 
-		root["error"] = ErrorCodes::Success;
 		auto user_info = std::make_shared<UserInfo>();
 
 		std::string base_key = std::string(USER_BASE_INFO) + std::to_string(to_uid);
@@ -405,9 +448,11 @@ void LogicSystem::RegisterCallBacks()
 		// 更新数据库: 更新friend_apply中status状态 + 添加到friend
 		bool b_auth_and_add = MysqlMgr::GetInst()->AuthAndAddFriend(to_uid, uid, back_name); // 当前协议：to_uid 是申请人 ，uid 是同意者 
 		if (!b_auth_and_add) {
-			root["error"] = ErrorCodes::Uid_Invalid;
+			root["error"] = ErrorCodes::Database_Failed;
 			return;
 		}
+
+		root["error"] = ErrorCodes::Success;
 
 		// 查询redis, 查找to_uid对应的server_ip
 		auto to_str = std::to_string(to_uid);
@@ -476,11 +521,34 @@ void LogicSystem::RegisterCallBacks()
 		}
 
 		if (!src_root.is_object() ||
-			!src_root.contains("from_uid") || !src_root["from_uid"].is_number_integer() ||
 			!src_root.contains("to_uid") || !src_root["to_uid"].is_number_integer() ||
 			!src_root.contains("text_array") || !src_root["text_array"].is_array()) {
-			std::cerr << "Text Chat payload error: " << msg_data << std::endl;
+			std::cerr << "Text Chat payload error: invalid top-level fields" << std::endl;
 			root["error"] = ErrorCodes::Error_Json;
+			return;
+		}
+
+		int uid = sess->GetUserId();
+		if (uid <= 0) {
+			root["error"] = ErrorCodes::Token_Invalid;
+			return;
+		}
+
+		if (src_root.contains("from_uid") &&
+			(!src_root["from_uid"].is_number_integer() ||
+			 src_root["from_uid"].get<int>() != uid)) {
+			root["error"] = ErrorCodes::Token_Invalid;
+			return;
+		}
+
+		int to_uid = src_root["to_uid"].get<int>();
+		if (to_uid <= 0 || to_uid == uid) {
+			root["error"] = ErrorCodes::Uid_Invalid;
+			return;
+		}
+
+		if (!MysqlMgr::GetInst()->AreFriends(uid, to_uid)) {
+			root["error"] = ErrorCodes::Friend_Required;
 			return;
 		}
 
@@ -489,14 +557,11 @@ void LogicSystem::RegisterCallBacks()
 			if (!txt_obj.is_object() ||
 				!txt_obj.contains("content") || !txt_obj["content"].is_string() ||
 				!txt_obj.contains("unique_id") || !txt_obj["unique_id"].is_string()) {
-				std::cerr << "Text Chat payload error: " << msg_data << std::endl;
+				std::cerr << "Text Chat payload error: invalid text item" << std::endl;
 				root["error"] = ErrorCodes::Error_Json;
 				return;
 			}
 		}
-
-		auto uid = src_root["from_uid"].get<int>();
-		auto to_uid = src_root["to_uid"].get<int>();
 
 		root["error"] = ErrorCodes::Success;
 		root["from_uid"] = uid;

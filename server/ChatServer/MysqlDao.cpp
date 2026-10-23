@@ -107,6 +107,34 @@ bool MysqlDao::AddFriendApply(const int& from, const int& to) {
 	}
 }
 
+bool MysqlDao::AreFriends(int uid, int friend_id) {
+	try {
+		mysqlx::Session sess = _pool->getConnection();
+		auto res = sess.sql(R"(
+			SELECT COUNT(*)
+			FROM friend
+			WHERE (self_id = ? AND friend_id = ?)
+			   OR (self_id = ? AND friend_id = ?)
+		)")
+			.bind(uid)
+			.bind(friend_id)
+			.bind(friend_id)
+			.bind(uid)
+			.execute();
+
+		auto row = res.fetchOne();
+		return row && !row[0].isNull() && row[0].get<int>() == 2;
+	}
+	catch (const mysqlx::Error& e) {
+		std::cerr << "Mysql Error: " << e.what() << std::endl;
+		return false;
+	}
+	catch (const std::exception& e) {
+		std::cerr << "Standard exception: " << e.what() << std::endl;
+		return false;
+	}
+}
+
 bool MysqlDao::GetApplyList(int to_uid, std::vector<std::shared_ptr<ApplyInfo>>& apply_list, int begin, int limit) {
 	try {
 		mysqlx::Session sess = _pool->getConnection();
