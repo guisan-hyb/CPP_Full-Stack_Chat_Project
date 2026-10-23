@@ -231,6 +231,23 @@ async function main() {
         assert.strictEqual(aliceChatLogin.error, 0, 'alice TCP login failed');
         assert.strictEqual(bobChatLogin.error, 0, 'bob TCP login failed');
 
+        const searchByName = await alicePeer.request(
+            ID_SEARCH_USER_REQ,
+            { uid: bob.user },
+            ID_SEARCH_USER_RSP);
+        assert.strictEqual(searchByName.error, 0, 'name search should succeed');
+        assert.strictEqual(searchByName.uid, bob.uid);
+
+        const nameCacheValue = await redis.get(`nameinfo_${bob.user}`);
+        assert.strictEqual(nameCacheValue, String(bob.uid), 'name cache must store only uid');
+        const profileCacheValue = await redis.get(`ubaseinfo_${bob.uid}`);
+        assert.ok(profileCacheValue, 'profile cache should exist');
+        assert.strictEqual(JSON.parse(profileCacheValue).uid, bob.uid);
+        const profileTtl = await redis.ttl(`ubaseinfo_${bob.uid}`);
+        const nameTtl = await redis.ttl(`nameinfo_${bob.user}`);
+        assert.ok(profileTtl > 0 && profileTtl <= 600, `unexpected profile TTL: ${profileTtl}`);
+        assert.ok(nameTtl > 0 && nameTtl <= 600, `unexpected name TTL: ${nameTtl}`);
+
         const loginCounts = await redis.hgetall('logincount');
         const totalLoginCount = Object.values(loginCounts)
             .reduce((total, count) => total + Number(count), 0);
