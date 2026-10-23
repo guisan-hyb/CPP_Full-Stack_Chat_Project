@@ -1,5 +1,9 @@
 #include "httpmgr.h"
 
+namespace {
+constexpr int HttpTimeoutMs = 10000;
+}
+
 HttpMgr::~HttpMgr()
 {
 
@@ -14,6 +18,7 @@ void HttpMgr::PostHttpReq(QUrl url, QJsonObject json, ReqId req_id, Modules mod)
     QByteArray data = QJsonDocument(json).toJson();
 
     QNetworkRequest request(url);
+    request.setTransferTimeout(HttpTimeoutMs);
     request.setHeader(QNetworkRequest::ContentTypeHeader,"application/json");
     request.setHeader(QNetworkRequest::ContentLengthHeader,QByteArray::number(data.length()));
 

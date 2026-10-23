@@ -6,8 +6,10 @@
 #include <QStyleOption>
 #include <QPainter>
 #include <QStyle>
+#include <QMessageBox>
 #include "usermgr.h"
 #include "tcpmgr.h"
+#include "chatprotocol.h"
 
 ChatPage::ChatPage(QWidget *parent)
     : QWidget(parent)
@@ -39,6 +41,11 @@ void ChatPage::paintEvent(QPaintEvent *event)
 
 void ChatPage::SetUserInfo(std::shared_ptr<UserInfo> user_info)
 {
+    if (!user_info) {
+        qWarning() << "ChatPage::SetUserInfo received null UserInfo";
+        return;
+    }
+
     _user_info = user_info;
     // 设置Ui界面
     ui->title_label->setText(_user_info->_name);
@@ -51,6 +58,11 @@ void ChatPage::SetUserInfo(std::shared_ptr<UserInfo> user_info)
 void ChatPage::AppendChatMsg(std::shared_ptr<TextChatData> msg)
 {
     auto self_info = UserMgr::GetInstance()->GetUserInfo();
+    if (!msg || !self_info) {
+        qWarning() << "ChatPage::AppendChatMsg missing message or current user";
+        return;
+    }
+
     ChatRole role;
     //todo... 添加聊天显示
     if (msg->_from_uid == self_info->_uid) {
@@ -84,25 +96,42 @@ void ChatPage::AppendChatMsg(std::shared_ptr<TextChatData> msg)
 void ChatPage::on_send_btn_clicked()
 {
     if(_user_info == nullptr){
-        qDebug()<<"friend_info is empty";
+        qWarning() << "friend_info is empty";
         return;
     }
 
     auto user_info = UserMgr::GetInstance()->GetUserInfo();
+    if (user_info == nullptr) {
+        qWarning() << "current user info is empty";
+        return;
+    }
+
     auto pTextEdit = ui->chat_edit;
     ChatRole role = ChatRole::Self;
     QString userName = user_info->_name;
     QString userIcon = user_info->_icon;
 
     const QVector<MsgInfo>& msgList = pTextEdit->getMsgList();
-    QJsonObject textObj;
     QJsonArray textArray;
-    int txt_size = 0;
+
+    auto flushTextArray = [this, &textArray]() {
+        if (textArray.isEmpty()) {
+            return;
+        }
+
+        const QByteArray payload = ChatProtocol::BuildTextRequest(_user_info->_uid, textArray);
+        if (payload.size() > ChatProtocol::MaxTextPayloadBytes) {
+            qWarning() << "text payload exceeds protocol limit:" << payload.size();
+            return;
+        }
+
+        emit TcpMgr::GetInstance()->sig_send_data(ReqId::ID_TEXT_CHAT_MSG_REQ, payload);
+        textArray = QJsonArray();
+    };
 
     for(int i=0; i<msgList.size(); ++i)
     {
-        //消息内容长度不合规就跳过
-        if(msgList[i].content.length() > 1024){
+        if (msgList[i].content.isEmpty()) {
             continue;
         }
 
@@ -112,67 +141,49 @@ void ChatPage::on_send_btn_clicked()
         pChatItem->setUserIcon(QPixmap(userIcon));
         QWidget *pBubble = nullptr;
 
-        if(type == "text")
-        {
+        if(type == "text") {
             //生成唯一id
             QUuid uuid = QUuid::createUuid();
             //转为字符串
             QString uuidString = uuid.toString();
 
-            pBubble = new TextBubble(role, msgList[i].content);
-            if(txt_size + msgList[i].content.length()> 1024){
-                textObj["to_uid"] = _user_info->_uid;
-                textObj["text_array"] = textArray;
-                QJsonDocument doc(textObj);
-                QByteArray jsonData = doc.toJson(QJsonDocument::Compact);
-                //发送并清空之前累计的文本列表
-                txt_size = 0;
-                textArray = QJsonArray();
-                textObj = QJsonObject();
-                //发送tcp请求给chat server
-                emit TcpMgr::GetInstance()->sig_send_data(ReqId::ID_TEXT_CHAT_MSG_REQ, jsonData);
+            QJsonObject obj;
+            obj["content"] = msgList[i].content;
+            obj["unique_id"] = uuidString;
+
+            auto append_result = ChatProtocol::TryAppendText(_user_info->_uid, textArray, obj);
+            if (append_result == ChatProtocol::AppendResult::NeedNewBatch) {
+                flushTextArray();
+                append_result = ChatProtocol::TryAppendText(_user_info->_uid, textArray, obj);
             }
 
-            //将bubble和uid绑定，以后可以等网络返回消息后设置是否送达
-            //_bubble_map[uuidString] = pBubble;
-            txt_size += msgList[i].content.length();
-            QJsonObject obj;
-            QByteArray utf8Message = msgList[i].content.toUtf8();
-            obj["content"] = QString::fromUtf8(utf8Message);
-            obj["unique_id"] = uuidString;
-            textArray.append(obj);
+            if (append_result == ChatProtocol::AppendResult::TooLarge) {
+                qWarning() << "single chat item exceeds protocol limit"
+                           << "unique_id:" << uuidString;
+                QMessageBox::warning(this, tr("消息过长"),
+                                     tr("单条消息超过 2048 字节协议限制，未发送。"));
+                delete pChatItem;
+                continue;
+            }
+
+            pBubble = new TextBubble(role, msgList[i].content);
             auto txt_msg = std::make_shared<TextChatData>(uuidString, obj["content"].toString(),
                                                           user_info->_uid, _user_info->_uid);
             emit sig_append_send_chat_msg(txt_msg);
-        }
-        else if(type == "image")
-        {
+        } else if(type == "image") {
             pBubble = new PictureBubble(QPixmap(msgList[i].content) , role);
         }
-        else if(type == "file")
-        {
 
-        }
         //发送消息
         if(pBubble != nullptr)
         {
             pChatItem->setWidget(pBubble);
             ui->chat_data_list->appendChatItem(pChatItem);
+        } else {
+            delete pChatItem;
         }
-
     }
 
-    qDebug() << "textArray is " << textArray ;
-    //发送给服务器
-    textObj["text_array"] = textArray;
-    textObj["to_uid"] = _user_info->_uid;
-    QJsonDocument doc(textObj);
-    QByteArray jsonData = doc.toJson(QJsonDocument::Compact);
-    //发送并清空之前累计的文本列表
-    txt_size = 0;
-    textArray = QJsonArray();
-    textObj = QJsonObject();
-    //发送tcp请求给chat server
-    emit TcpMgr::GetInstance()->sig_send_data(ReqId::ID_TEXT_CHAT_MSG_REQ, jsonData);
+    flushTextArray();
 }
 

@@ -128,7 +128,13 @@ void RegisterDialog::slot_reg_mod_finish(ReqId id, QString res, ErrorCodes err)
         return;
     }
 
-    _handlers[id](jsonDoc.object());// 调用回调函数
+    auto handler = _handlers.find(id);
+    if (handler == _handlers.end()) {
+        qWarning() << "register response has no handler:" << id;
+        showTip(tr("未知服务器响应"), false);
+        return;
+    }
+    handler.value()(jsonDoc.object());
     return;
 }
 

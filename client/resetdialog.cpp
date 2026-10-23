@@ -83,8 +83,13 @@ void ResetDialog::slot_reset_mod_finish(ReqId id, QString res, ErrorCodes err)
     }
 
 
-    //调用对应的逻辑,根据id回调。
-    _handlers[id](jsonDoc.object());
+    auto handler = _handlers.find(id);
+    if (handler == _handlers.end()) {
+        qWarning() << "reset response has no handler:" << id;
+        showTip(tr("未知服务器响应"), false);
+        return;
+    }
+    handler.value()(jsonDoc.object());
 
     return;
 }

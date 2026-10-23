@@ -40,6 +40,7 @@ private:
     ChatUIMode _mode;
     ChatUIMode _state;
     bool _b_loading;
+    bool _disconnect_notified;
     QList<StateWidget*> _lb_list;
     QMap<int, QListWidgetItem*> _chat_items_added;
     int _cur_chat_uid;
@@ -63,6 +64,7 @@ public slots:
     void slot_item_clicked(QListWidgetItem* item);
     void slot_append_send_chat_msg(std::shared_ptr<TextChatData> msgdata);
     void slot_text_chat_msg(std::shared_ptr<TextChatMsg> msg);
+    void slot_conn_lost();
 };
 
 #endif // CHATDIALOG_H

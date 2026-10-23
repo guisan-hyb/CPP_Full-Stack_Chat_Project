@@ -28,6 +28,7 @@ private:
     uint16_t _port;
     QByteArray _buffer;
     bool _b_recv_pending;
+    bool _b_connected;
     quint16 _message_id;
     quint16 _message_len;
     QMap<ReqId,std::function<void(ReqId id, int len, QByteArray data)>> _handlers;
@@ -42,6 +43,7 @@ signals:
     void sig_switch_chatDlg();
     void sig_login_failed(int);
     void sig_login_timeout(); // 聊天登录长时间收不到回包
+    void sig_conn_lost();
     void sig_user_search(std::shared_ptr<SearchInfo>);
     void sig_friend_apply(std::shared_ptr<AddFriendApply>);// 我 申请 对方 为好友的信号
     void sig_add_auth_friend(std::shared_ptr<AuthInfo>);// 对方 同意了，发送的信号

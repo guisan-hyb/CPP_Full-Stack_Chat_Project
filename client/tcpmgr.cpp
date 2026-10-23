@@ -9,9 +9,10 @@ TcpMgr::~TcpMgr()
 }
 
 TcpMgr::TcpMgr()
-    : _host(""), _port(0), _b_recv_pending(false), _message_id(0), _message_len(0)
+    : _host(""), _port(0), _b_recv_pending(false), _b_connected(false), _message_id(0), _message_len(0)
 {
     QObject::connect(&_socket,&QTcpSocket::connected,this,[this](){
+        _b_connected = true;
         qDebug()<<"Connected to server!";
         emit sig_conn_success(true);// 连接建立后发送消息
     });
@@ -52,7 +53,9 @@ TcpMgr::TcpMgr()
         qDebug() << "socket error:" << socketError << _socket.errorString();
         // 连接出错时通知登录界面，别让按钮一直卡在禁用状态
         _login_timer.stop();
-        emit sig_conn_success(false);
+        if (!_b_connected) {
+            emit sig_conn_success(false);
+        }
     });
 
     // 聊天登录超时保护：服务端不回包时也要让界面能提示并恢复
@@ -66,6 +69,17 @@ TcpMgr::TcpMgr()
     // 处理连接断开
     QObject::connect(&_socket,&QTcpSocket::disconnected,[this](){
         qDebug()<<"Disconnected from server";
+        _login_timer.stop();
+        _buffer.clear();
+        _b_recv_pending = false;
+        _message_id = 0;
+        _message_len = 0;
+
+        const bool was_connected = _b_connected;
+        _b_connected = false;
+        if (was_connected) {
+            emit sig_conn_lost();
+        }
     });
 
     //连接发送信号用来发送数据，期望在任何地方发送信号就会调用写数据的槽函数
@@ -382,11 +396,24 @@ void TcpMgr::slot_tcp_connect(ServerInfo si)
     qDebug()<<"Connecting to server...";
     _host = si.Host;
     _port = static_cast<uint16_t>(si.Port.toUInt());
+    _buffer.clear();
+    _b_recv_pending = false;
+    _b_connected = false;
     _socket.connectToHost(_host,_port);
 }
 
 void TcpMgr::slot_send_data(ReqId reqId, QByteArray dataBytes)
 {
+    if (_socket.state() != QAbstractSocket::ConnectedState) {
+        qWarning() << "cannot send data while TCP socket is disconnected";
+        return;
+    }
+
+    if (dataBytes.size() > 2048) {
+        qWarning() << "TCP payload exceeds 2048 bytes:" << dataBytes.size();
+        return;
+    }
+
     uint16_t id = reqId;
     quint16 len = static_cast<quint16>(dataBytes.size());
 

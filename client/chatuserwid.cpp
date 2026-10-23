@@ -16,6 +16,11 @@ ChatUserWid::~ChatUserWid()
 
 void ChatUserWid::SetInfo(std::shared_ptr<UserInfo> user_info)
 {
+    if (!user_info) {
+        qWarning() << "ChatUserWid::SetInfo received null UserInfo";
+        return;
+    }
+
     _user_info = user_info;
 
     // 加载图片
@@ -31,6 +36,11 @@ void ChatUserWid::SetInfo(std::shared_ptr<UserInfo> user_info)
 
 void ChatUserWid::SetInfo(std::shared_ptr<FriendInfo> friend_info)
 {
+    if (!friend_info) {
+        qWarning() << "ChatUserWid::SetInfo received null FriendInfo";
+        return;
+    }
+
     _user_info = std::make_shared<UserInfo>(friend_info);
     // 加载图片
     QPixmap pixmap(_user_info->_icon);
@@ -50,8 +60,16 @@ std::shared_ptr<UserInfo> ChatUserWid::GetUserInfo()
 
 void ChatUserWid::updateLastMsg(std::vector<std::shared_ptr<TextChatData> > msgs)
 {
+    if (!_user_info) {
+        qWarning() << "ChatUserWid::updateLastMsg called without user info";
+        return;
+    }
+
     QString last_msg = "";
     for(auto& msg:msgs){
+        if (!msg) {
+            continue;
+        }
         last_msg = msg->_msg_content;
         _user_info->_chat_msgs.push_back(msg);
     }

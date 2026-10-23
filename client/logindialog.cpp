@@ -208,8 +208,14 @@ void LoginDialog::slot_login_mod_finish(ReqId id, QString res, ErrorCodes err)
         return;
     }
 
-    // 调用回调函数
-    _handlers[id](jsonDoc.object());
+    auto handler = _handlers.find(id);
+    if (handler == _handlers.end()) {
+        qWarning() << "login response has no handler:" << id;
+        showTip(tr("未知服务器响应"), false);
+        enableBtn(true);
+        return;
+    }
+    handler.value()(jsonDoc.object());
 }
 
 void LoginDialog::slot_tcp_conn_finish(bool b_success)

@@ -2,6 +2,8 @@
 #define CUSTOMIZEEDIT_H
 
 #include <QLineEdit>
+#include <QSignalBlocker>
+#include "textutils.h"
 
 class CustomizeEdit: public QLineEdit
 {
@@ -25,11 +27,11 @@ private:
             return;
         }
 
-        QByteArray byteArray = text.toUtf8();
-
-        if (byteArray.size() > _max_len) {
-            byteArray = byteArray.left(_max_len);
-            this->setText(QString::fromUtf8(byteArray));
+        if (text.size() > _max_len) {
+            const QSignalBlocker blocker(this);
+            const QString clamped = ClampTextToMaxCharacters(text, _max_len);
+            this->setText(clamped);
+            this->setCursorPosition(clamped.size());
         }
     }
 

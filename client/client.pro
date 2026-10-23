@@ -16,6 +16,7 @@ SOURCES += \
     bubbleframe.cpp \
     chatdialog.cpp \
     chatitembase.cpp \
+    chatprotocol.cpp \
     chatpage.cpp \
     chatuserlist.cpp \
     chatuserwid.cpp \
@@ -60,6 +61,7 @@ HEADERS += \
     bubbleframe.h \
     chatdialog.h \
     chatitembase.h \
+    chatprotocol.h \
     chatpage.h \
     chatuserlist.h \
     chatuserwid.h \
@@ -89,6 +91,7 @@ HEADERS += \
     singleton.h \
     statewidget.h \
     tcpmgr.h \
+    textutils.h \
     textbubble.h \
     timerbtn.h \
     userdata.h \
