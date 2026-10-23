@@ -1274,10 +1274,10 @@ gRPC 的状态码是固定的传输层语义（NOT_FOUND/UNAVAILABLE…），不
 
 | 文档 | 关联点 |
 | --- | --- |
-| `开发文档/踩坑复盘-gRPC_vcpkg_VS2022.md` | protoc plugin、LNK2019、CMake 集成模式 |
-| `开发文档/ASIO IO线程池 vs GRPC连接池 优化与对比总结.md` | 为什么要池、池的线程模型 |
-| `开发文档/GateServer 架构分析.md` | GateServer 的 HTTP 处理与路由结构 |
-| `开发文档/Redis基础使用.md`、`开发文档/对比解析Redis：string操作、list操作、hash操作.md` | `logincount` 用到的 hash 操作 |
+| `开发文档/复盘与排错/踩坑复盘-gRPC_vcpkg_VS2022.md` | protoc plugin、LNK2019、CMake 集成模式 |
+| `开发文档/技术专题/ASIO IO线程池 vs GRPC连接池 优化与对比总结.md` | 为什么要池、池的线程模型 |
+| `开发文档/架构与流程/GateServer 架构分析.md` | GateServer 的 HTTP 处理与路由结构 |
+| `开发文档/技术专题/Redis基础使用.md`、`开发文档/技术专题/对比解析Redis：string操作、list操作、hash操作.md` | `logincount` 用到的 hash 操作 |
 | `server/proto/message.proto` | 唯一的接口契约来源 |
 
 ---
