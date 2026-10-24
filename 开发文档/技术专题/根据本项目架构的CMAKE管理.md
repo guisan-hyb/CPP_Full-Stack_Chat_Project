@@ -1,5 +1,11 @@
 ## 根据本项目架构的CMAKE管理
 
+> 本文是早期 CMake 架构整理，其中“只有 Windows 预设”等结论已经过时。
+>
+> 当前 `CMakePresets.json`、vcpkg、host/target triplet 的完整说明，请参考：
+>
+> [CMake、CMakePresets、CMakeLists 与 vcpkg triplet](CMakePresets与vcpkg-triplet.md)
+
 针对你的项目架构（Client 用 QMake，Server 用 CMake + vcpkg 管理多个 gRPC 微服务），最佳实践是**采用“顶层 CMake 统筹 + 子目录 CMake 分治”的模块化结构**。
 
 既然你后续还会开发其他服务器（如 LogicServer、ChatServer 等），我们需要把公共的依赖（gRPC、Protobuf）提取到 `server` 目录下的主 CMake 中，然后每个具体的 Server 作为一个独立的子目录。
