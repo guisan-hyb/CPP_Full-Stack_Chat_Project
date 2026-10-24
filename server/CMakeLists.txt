@@ -73,6 +73,25 @@ target_link_libraries(chat_proto PUBLIC
     protobuf::libprotobuf
 )
 
+# 在每次构建目标前复制配置，避免 configure 时 config.ini 尚不存在
+function(copy_config_to_target target_name config_file)
+    set(copy_script "${PROJECT_SOURCE_DIR}/cmake/CopyConfigIfExists.cmake")
+    if(CMAKE_CONFIGURATION_TYPES)
+        set(config_destination "${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>")
+    else()
+        set(config_destination "${CMAKE_CURRENT_BINARY_DIR}")
+    endif()
+    add_custom_target("${target_name}_copy_config" ALL
+        COMMAND "${CMAKE_COMMAND}"
+            "-DSOURCE_FILE=${config_file}"
+            "-DDESTINATION_DIR=${config_destination}"
+            -P "${copy_script}"
+        COMMENT "Copying config.ini for ${target_name}"
+        VERBATIM
+    )
+    add_dependencies("${target_name}" "${target_name}_copy_config")
+endfunction()
+
 # ------------------------------------------------------------ 
 # 5. 子目录
 # ------------------------------------------------------------

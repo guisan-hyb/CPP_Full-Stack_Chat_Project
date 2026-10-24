@@ -159,6 +159,8 @@ client/config.example.ini
 
 各 C++ 服务从当前工作目录读取 `config.ini`，启动时目录必须正确。
 
+每次构建 C++ 服务时，CMake 都会检查对应服务目录下的 `config.ini`，并自动复制到当前构建配置的可执行文件目录。即使 `config.ini` 是在 CMake configure 之后创建或修改的，也会在下一次构建时同步；文件不存在时会输出提醒。
+
 ## 构建服务端
 
 ### Windows Debug

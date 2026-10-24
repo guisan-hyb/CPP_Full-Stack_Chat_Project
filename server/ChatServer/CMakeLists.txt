@@ -36,20 +36,6 @@ target_link_libraries(ChatServer
     unofficial::mysql-connector-cpp::connector
 )
 
-# ==========================================
-# 自动拷贝配置文件到运行目录
-# ==========================================
-# 1. 定义配置文件的源路径 (config.ini 放在 ChatServer 目录下)
-set(CONFIG_FILE ${CMAKE_CURRENT_SOURCE_DIR}/config.ini)
-
-# 2. 添加自定义命令：在编译 ChatServer 之后，将 config.ini 拷贝到 .exe 所在目录
-if(EXISTS ${CONFIG_FILE})
-    add_custom_command(TARGET ChatServer POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        ${CONFIG_FILE}
-        $<TARGET_FILE_DIR:ChatServer>
-    )
-else()
-    message(WARNING "ChatServer/config.ini 不存在，请从 config.example.ini 复制并填写本地凭据")
-endif()
+# 每次构建前复制配置，支持在 configure 之后创建 config.ini
+copy_config_to_target(ChatServer "${CMAKE_CURRENT_SOURCE_DIR}/config.ini")
 

@@ -37,19 +37,5 @@ target_link_libraries(GateServer PRIVATE
     unofficial-sodium::sodium
 )
 
-# ==========================================
-# 自动拷贝配置文件到运行目录
-# ==========================================
-# 1. 定义配置文件的源路径 (config.ini 放在 GateServer 目录下)
-set(CONFIG_FILE ${CMAKE_CURRENT_SOURCE_DIR}/config.ini)
-
-# 2. 添加自定义命令：在编译 GateServer 之后，将 config.ini 拷贝到 .exe 所在目录
-if(EXISTS ${CONFIG_FILE})
-    add_custom_command(TARGET GateServer POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        ${CONFIG_FILE}
-        $<TARGET_FILE_DIR:GateServer>
-    )
-else()
-    message(WARNING "GateServer/config.ini 不存在，请从 config.example.ini 复制并填写本地凭据")
-endif()
+# 每次构建前复制配置，支持在 configure 之后创建 config.ini
+copy_config_to_target(GateServer "${CMAKE_CURRENT_SOURCE_DIR}/config.ini")

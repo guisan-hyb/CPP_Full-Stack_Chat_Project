@@ -26,6 +26,7 @@ CTestTestfile.cmake
 CMakeScripts/
 *.cmake
 !cmake/triplets/*.cmake
+!cmake/CopyConfigIfExists.cmake
 # 注意：不要忽略 CMakeLists.txt 和 CMakePresets.json 本身！
 
 # ===============================
