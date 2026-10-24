@@ -1,0 +1,630 @@
+{
+  "runId": "1792824299294-8e20a0",
+  "startedAt": "2026-10-24T06:44:59.294Z",
+  "target": {
+    "gate": "127.0.0.1:8080",
+    "chat1": "127.0.0.1:8990",
+    "chat2": "127.0.0.1:8991",
+    "redis": "192.168.182.129:16379"
+  },
+  "settings": {
+    "pairs": 50,
+    "httpDurationMs": 10000,
+    "chatDurationMs": 15000,
+    "messageBytes": 64,
+    "requestTimeoutMs": 5000
+  },
+  "phases": [
+    {
+      "phase": "http_register",
+      "concurrency": 1,
+      "durationSeconds": 5.412,
+      "attempts": 100,
+      "successes": 100,
+      "failures": 0,
+      "successRatePercent": 100,
+      "errorCounts": {},
+      "throughputPerSecond": 18.479,
+      "latencyMs": {
+        "min": 46.463,
+        "mean": 53.68,
+        "p50": 50.217,
+        "p95": 62.116,
+        "p99": 73.135,
+        "max": 147.033
+      }
+    },
+    {
+      "phase": "http_get_test",
+      "vus": 1,
+      "durationSeconds": 10,
+      "attempts": 23985,
+      "successes": 23985,
+      "failures": 0,
+      "successRatePercent": 100,
+      "errorCounts": {},
+      "throughputPerSecond": 2398.5,
+      "latencyMs": {
+        "min": 0.274,
+        "mean": 0.412,
+        "p50": 0.372,
+        "p95": 0.639,
+        "p99": 0.786,
+        "max": 6.765
+      }
+    },
+    {
+      "phase": "http_get_test",
+      "vus": 10,
+      "durationSeconds": 10,
+      "attempts": 28018,
+      "successes": 28018,
+      "failures": 0,
+      "successRatePercent": 100,
+      "errorCounts": {},
+      "throughputPerSecond": 2801.8,
+      "latencyMs": {
+        "min": 1.531,
+        "mean": 3.565,
+        "p50": 3.602,
+        "p95": 4.507,
+        "p99": 4.953,
+        "max": 7.268
+      }
+    },
+    {
+      "phase": "http_get_test",
+      "vus": 50,
+      "durationSeconds": 10,
+      "attempts": 27927,
+      "successes": 27927,
+      "failures": 0,
+      "successRatePercent": 100,
+      "errorCounts": {},
+      "throughputPerSecond": 2792.7,
+      "latencyMs": {
+        "min": 5.818,
+        "mean": 17.904,
+        "p50": 18.609,
+        "p95": 22.047,
+        "p99": 23.06,
+        "max": 25.699
+      }
+    },
+    {
+      "phase": "http_get_test",
+      "vus": 100,
+      "durationSeconds": 10,
+      "attempts": 28015,
+      "successes": 28015,
+      "failures": 0,
+      "successRatePercent": 100,
+      "errorCounts": {},
+      "throughputPerSecond": 2801.5,
+      "latencyMs": {
+        "min": 13.37,
+        "mean": 35.716,
+        "p50": 35.457,
+        "p95": 44.325,
+        "p99": 45.853,
+        "max": 51.299
+      }
+    },
+    {
+      "phase": "http_login",
+      "vus": 1,
+      "durationSeconds": 10,
+      "attempts": 208,
+      "successes": 208,
+      "failures": 0,
+      "successRatePercent": 100,
+      "errorCounts": {},
+      "throughputPerSecond": 20.8,
+      "latencyMs": {
+        "min": 42.813,
+        "mean": 48.073,
+        "p50": 46.803,
+        "p95": 56.044,
+        "p99": 62.263,
+        "max": 65.805
+      }
+    },
+    {
+      "phase": "http_login",
+      "vus": 10,
+      "durationSeconds": 10,
+      "attempts": 313,
+      "successes": 313,
+      "failures": 0,
+      "successRatePercent": 100,
+      "errorCounts": {},
+      "throughputPerSecond": 31.3,
+      "latencyMs": {
+        "min": 78.278,
+        "mean": 325.052,
+        "p50": 327.457,
+        "p95": 349.633,
+        "p99": 355.817,
+        "max": 368.099
+      }
+    },
+    {
+      "phase": "http_login",
+      "vus": 50,
+      "durationSeconds": 10,
+      "attempts": 349,
+      "successes": 349,
+      "failures": 0,
+      "successRatePercent": 100,
+      "errorCounts": {},
+      "throughputPerSecond": 34.9,
+      "latencyMs": {
+        "min": 73.393,
+        "mean": 1552.583,
+        "p50": 1654.865,
+        "p95": 1721.239,
+        "p99": 1758.334,
+        "max": 1767.52
+      }
+    },
+    {
+      "phase": "http_login",
+      "vus": 100,
+      "durationSeconds": 10,
+      "attempts": 394,
+      "successes": 394,
+      "failures": 0,
+      "successRatePercent": 100,
+      "errorCounts": {},
+      "throughputPerSecond": 39.4,
+      "latencyMs": {
+        "min": 89.627,
+        "mean": 2949.069,
+        "p50": 3318.894,
+        "p95": 3511.141,
+        "p99": 3536.351,
+        "max": 3543.218
+      }
+    },
+    {
+      "phase": "tcp_login_sequential",
+      "connections": 10,
+      "durationSeconds": 1.106,
+      "attempts": 10,
+      "successes": 10,
+      "failures": 0,
+      "successRatePercent": 100,
+      "errorCounts": {},
+      "throughputPerSecond": 9.038,
+      "latencyMs": {
+        "min": 2.65,
+        "mean": 9.684,
+        "p50": 3.25,
+        "p95": 65.074,
+        "p99": 65.074,
+        "max": 65.074
+      }
+    },
+    {
+      "phase": "tcp_login_sequential",
+      "connections": 50,
+      "durationSeconds": 1.28,
+      "attempts": 50,
+      "successes": 50,
+      "failures": 0,
+      "successRatePercent": 100,
+      "errorCounts": {},
+      "throughputPerSecond": 39.056,
+      "latencyMs": {
+        "min": 2.714,
+        "mean": 5.456,
+        "p50": 3.428,
+        "p95": 22.715,
+        "p99": 25.111,
+        "max": 25.111
+      }
+    },
+    {
+      "phase": "tcp_login_sequential",
+      "connections": 100,
+      "durationSeconds": 1.567,
+      "attempts": 100,
+      "successes": 100,
+      "failures": 0,
+      "successRatePercent": 100,
+      "errorCounts": {},
+      "throughputPerSecond": 63.806,
+      "latencyMs": {
+        "min": 2.578,
+        "mean": 5.526,
+        "p50": 3.464,
+        "p95": 19.384,
+        "p99": 24.148,
+        "max": 24.631
+      }
+    },
+    {
+      "mode": "same",
+      "senders": 1,
+      "ack": {
+        "durationSeconds": 15,
+        "attempts": 6609,
+        "successes": 6609,
+        "failures": 0,
+        "successRatePercent": 100,
+        "errorCounts": {},
+        "throughputPerSecond": 440.6,
+        "latencyMs": {
+          "min": 0.871,
+          "mean": 2.262,
+          "p50": 1.299,
+          "p95": 10.905,
+          "p99": 13.578,
+          "max": 17.09
+        }
+      },
+      "delivery": {
+        "durationSeconds": 15,
+        "attempts": 6609,
+        "successes": 6609,
+        "failures": 0,
+        "successRatePercent": 100,
+        "errorCounts": {},
+        "throughputPerSecond": 440.6,
+        "latencyMs": {
+          "min": 0.84,
+          "mean": 2.224,
+          "p50": 1.263,
+          "p95": 10.85,
+          "p99": 13.558,
+          "max": 17.037
+        }
+      }
+    },
+    {
+      "mode": "same",
+      "senders": 5,
+      "ack": {
+        "durationSeconds": 15,
+        "attempts": 16259,
+        "successes": 16259,
+        "failures": 0,
+        "successRatePercent": 100,
+        "errorCounts": {},
+        "throughputPerSecond": 1083.933,
+        "latencyMs": {
+          "min": 1.285,
+          "mean": 4.609,
+          "p50": 4.064,
+          "p95": 8.349,
+          "p99": 12.863,
+          "max": 102.867
+        }
+      },
+      "delivery": {
+        "durationSeconds": 15,
+        "attempts": 16259,
+        "successes": 16259,
+        "failures": 0,
+        "successRatePercent": 100,
+        "errorCounts": {},
+        "throughputPerSecond": 1083.933,
+        "latencyMs": {
+          "min": 1.27,
+          "mean": 4.565,
+          "p50": 4.018,
+          "p95": 8.271,
+          "p99": 12.829,
+          "max": 102.774
+        }
+      }
+    },
+    {
+      "mode": "same",
+      "senders": 10,
+      "ack": {
+        "durationSeconds": 15,
+        "attempts": 17335,
+        "successes": 17335,
+        "failures": 0,
+        "successRatePercent": 100,
+        "errorCounts": {},
+        "throughputPerSecond": 1155.667,
+        "latencyMs": {
+          "min": 1.227,
+          "mean": 8.655,
+          "p50": 7.442,
+          "p95": 14.06,
+          "p99": 27.299,
+          "max": 562.846
+        }
+      },
+      "delivery": {
+        "durationSeconds": 15,
+        "attempts": 17335,
+        "successes": 17335,
+        "failures": 0,
+        "successRatePercent": 100,
+        "errorCounts": {},
+        "throughputPerSecond": 1155.667,
+        "latencyMs": {
+          "min": 1.16,
+          "mean": 8.605,
+          "p50": 7.39,
+          "p95": 14.018,
+          "p99": 27.267,
+          "max": 562.763
+        }
+      }
+    },
+    {
+      "mode": "same",
+      "senders": 25,
+      "ack": {
+        "durationSeconds": 15,
+        "attempts": 17059,
+        "successes": 17059,
+        "failures": 0,
+        "successRatePercent": 100,
+        "errorCounts": {},
+        "throughputPerSecond": 1137.267,
+        "latencyMs": {
+          "min": 1.449,
+          "mean": 21.992,
+          "p50": 18.063,
+          "p95": 42.63,
+          "p99": 111.316,
+          "max": 515.695
+        }
+      },
+      "delivery": {
+        "durationSeconds": 15,
+        "attempts": 17059,
+        "successes": 17059,
+        "failures": 0,
+        "successRatePercent": 100,
+        "errorCounts": {},
+        "throughputPerSecond": 1137.267,
+        "latencyMs": {
+          "min": 1.409,
+          "mean": 21.945,
+          "p50": 18.02,
+          "p95": 42.588,
+          "p99": 111.284,
+          "max": 515.635
+        }
+      }
+    },
+    {
+      "mode": "same",
+      "senders": 50,
+      "ack": {
+        "durationSeconds": 15,
+        "attempts": 16494,
+        "successes": 16494,
+        "failures": 0,
+        "successRatePercent": 100,
+        "errorCounts": {},
+        "throughputPerSecond": 1099.6,
+        "latencyMs": {
+          "min": 1.387,
+          "mean": 45.534,
+          "p50": 36.098,
+          "p95": 93.85,
+          "p99": 253.705,
+          "max": 903.523
+        }
+      },
+      "delivery": {
+        "durationSeconds": 15,
+        "attempts": 16494,
+        "successes": 16494,
+        "failures": 0,
+        "successRatePercent": 100,
+        "errorCounts": {},
+        "throughputPerSecond": 1099.6,
+        "latencyMs": {
+          "min": 1.341,
+          "mean": 45.489,
+          "p50": 36.065,
+          "p95": 93.815,
+          "p99": 253.653,
+          "max": 903.5
+        }
+      }
+    },
+    {
+      "mode": "cross",
+      "senders": 1,
+      "ack": {
+        "durationSeconds": 15,
+        "attempts": 6359,
+        "successes": 6359,
+        "failures": 0,
+        "successRatePercent": 100,
+        "errorCounts": {},
+        "throughputPerSecond": 423.933,
+        "latencyMs": {
+          "min": 1.125,
+          "mean": 2.353,
+          "p50": 1.653,
+          "p95": 9.819,
+          "p99": 14.38,
+          "max": 19.69
+        }
+      },
+      "delivery": {
+        "durationSeconds": 15,
+        "attempts": 6359,
+        "successes": 6359,
+        "failures": 0,
+        "successRatePercent": 100,
+        "errorCounts": {},
+        "throughputPerSecond": 423.933,
+        "latencyMs": {
+          "min": 0.985,
+          "mean": 2.159,
+          "p50": 1.452,
+          "p95": 9.592,
+          "p99": 14.176,
+          "max": 19.485
+        }
+      }
+    },
+    {
+      "mode": "cross",
+      "senders": 5,
+      "ack": {
+        "durationSeconds": 15,
+        "attempts": 6346,
+        "successes": 6346,
+        "failures": 0,
+        "successRatePercent": 100,
+        "errorCounts": {},
+        "throughputPerSecond": 423.067,
+        "latencyMs": {
+          "min": 1.527,
+          "mean": 11.83,
+          "p50": 7.903,
+          "p95": 28.781,
+          "p99": 40.188,
+          "max": 323.908
+        }
+      },
+      "delivery": {
+        "durationSeconds": 15,
+        "attempts": 6346,
+        "successes": 6346,
+        "failures": 0,
+        "successRatePercent": 100,
+        "errorCounts": {},
+        "throughputPerSecond": 423.067,
+        "latencyMs": {
+          "min": 1.297,
+          "mean": 11.634,
+          "p50": 7.708,
+          "p95": 28.588,
+          "p99": 39.981,
+          "max": 323.718
+        }
+      }
+    },
+    {
+      "mode": "cross",
+      "senders": 10,
+      "ack": {
+        "durationSeconds": 15,
+        "attempts": 6431,
+        "successes": 6431,
+        "failures": 0,
+        "successRatePercent": 100,
+        "errorCounts": {},
+        "throughputPerSecond": 428.733,
+        "latencyMs": {
+          "min": 1.306,
+          "mean": 23.345,
+          "p50": 16.774,
+          "p95": 46.217,
+          "p99": 107.37,
+          "max": 500.26
+        }
+      },
+      "delivery": {
+        "durationSeconds": 15,
+        "attempts": 6431,
+        "successes": 6431,
+        "failures": 0,
+        "successRatePercent": 100,
+        "errorCounts": {},
+        "throughputPerSecond": 428.733,
+        "latencyMs": {
+          "min": 1.189,
+          "mean": 23.154,
+          "p50": 16.595,
+          "p95": 46.016,
+          "p99": 107.137,
+          "max": 500.072
+        }
+      }
+    },
+    {
+      "mode": "cross",
+      "senders": 25,
+      "ack": {
+        "durationSeconds": 15,
+        "attempts": 6471,
+        "successes": 6471,
+        "failures": 0,
+        "successRatePercent": 100,
+        "errorCounts": {},
+        "throughputPerSecond": 431.4,
+        "latencyMs": {
+          "min": 2.075,
+          "mean": 58.043,
+          "p50": 53.682,
+          "p95": 113.954,
+          "p99": 178.411,
+          "max": 716.61
+        }
+      },
+      "delivery": {
+        "durationSeconds": 15,
+        "attempts": 6471,
+        "successes": 6471,
+        "failures": 0,
+        "successRatePercent": 100,
+        "errorCounts": {},
+        "throughputPerSecond": 431.4,
+        "latencyMs": {
+          "min": 1.89,
+          "mean": 57.866,
+          "p50": 53.494,
+          "p95": 113.814,
+          "p99": 178.281,
+          "max": 716.486
+        }
+      }
+    },
+    {
+      "mode": "cross",
+      "senders": 50,
+      "ack": {
+        "durationSeconds": 15,
+        "attempts": 6563,
+        "successes": 6563,
+        "failures": 0,
+        "successRatePercent": 100,
+        "errorCounts": {},
+        "throughputPerSecond": 437.533,
+        "latencyMs": {
+          "min": 1.695,
+          "mean": 114.663,
+          "p50": 101.149,
+          "p95": 221.89,
+          "p99": 431.693,
+          "max": 1049.666
+        }
+      },
+      "delivery": {
+        "durationSeconds": 15,
+        "attempts": 6563,
+        "successes": 6563,
+        "failures": 0,
+        "successRatePercent": 100,
+        "errorCounts": {},
+        "throughputPerSecond": 437.533,
+        "latencyMs": {
+          "min": 1.532,
+          "mean": 114.518,
+          "p50": 101.006,
+          "p95": 221.712,
+          "p99": 431.589,
+          "max": 1049.537
+        }
+      }
+    }
+  ],
+  "redisOnlineCountAfterTests": 0,
+  "finishedAt": "2026-10-24T06:49:33.177Z",
+  "durationSeconds": 273.883
+}

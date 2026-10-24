@@ -1,0 +1,39 @@
+{
+  "sampleSource": "windows-full-monitor.csv",
+  "samples": 140,
+  "cpuPercentDefinition": "Percent of one logical processor; values above 100 mean more than one logical processor was used.",
+  "systemCpuPercent": {
+    "average": 14.40,
+    "maximum": 23.61
+  },
+  "processes": {
+    "GateServer": {
+      "averageCpuPercentOfOneCore": 41.68,
+      "p95CpuPercentOfOneCore": 190.26,
+      "maximumCpuPercentOfOneCore": 192.41,
+      "averageWorkingSetMB": 40.08,
+      "maximumWorkingSetMB": 152.11
+    },
+    "StatusServer": {
+      "averageCpuPercentOfOneCore": 0.70,
+      "p95CpuPercentOfOneCore": 3.85,
+      "maximumCpuPercentOfOneCore": 8.42,
+      "averageWorkingSetMB": 17.48,
+      "maximumWorkingSetMB": 17.63
+    },
+    "ChatServer": {
+      "averageCpuPercentOfOneCore": 15.11,
+      "p95CpuPercentOfOneCore": 36.23,
+      "maximumCpuPercentOfOneCore": 39.40,
+      "averageWorkingSetMB": 23.88,
+      "maximumWorkingSetMB": 25.80
+    },
+    "ChatServer2": {
+      "averageCpuPercentOfOneCore": 10.25,
+      "p95CpuPercentOfOneCore": 32.12,
+      "maximumCpuPercentOfOneCore": 42.95,
+      "averageWorkingSetMB": 22.01,
+      "maximumWorkingSetMB": 24.84
+    }
+  }
+}

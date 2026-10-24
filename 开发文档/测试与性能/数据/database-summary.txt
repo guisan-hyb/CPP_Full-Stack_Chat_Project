@@ -1,0 +1,25 @@
+MySQL test data
+users=100
+friends=100
+friend_applies=50
+
+MySQL performance_schema top statements
+statement	count_star	total_wait_ms	mean_wait_ms
+SELECT friend by both directions	105976	19013.16	0.179
+ROLLBACK	109193	12225.35	0.112
+SELECT password hash by email	1624	667.86	0.411
+SELECT friend apply list	624	187.47	0.300
+SELECT friend list	624	143.89	0.231
+SELECT user by uid	150	32.61	0.217
+CALL reg_user	100	215.04	2.150
+
+Redis commandstats
+command	calls	total_usec	mean_usec
+GET	108098	183387	1.70
+HGET	3248	20703	6.37
+SET	2548	16974	6.66
+HINCRBY	1248	4181	3.35
+DEL	624	762	1.22
+HMGET	1	8	8.00
+
+Redis DBSIZE after tests: 401

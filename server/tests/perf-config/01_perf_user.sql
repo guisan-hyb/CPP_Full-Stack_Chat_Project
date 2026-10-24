@@ -1,0 +1,3 @@
+CREATE USER IF NOT EXISTS 'perf_app'@'%' IDENTIFIED BY 'perf_test_password';
+GRANT SELECT, INSERT, UPDATE, DELETE, EXECUTE ON guisan.* TO 'perf_app'@'%';
+FLUSH PRIVILEGES;
