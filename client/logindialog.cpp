@@ -10,12 +10,22 @@ LoginDialog::LoginDialog(QWidget *parent)
     , ui(new Ui::LoginDialog)
 {
     ui->setupUi(this);
+    ui->pass_lineEdit->setEchoMode(QLineEdit::Password);
     connect(ui->reg_btn,&QPushButton::clicked,this,&LoginDialog::sig_switchRegister);
 
     // 忘记密码的一些功能
     ui->forget_label->SetState("normal","hover","","selected","selected_hover","");
     // ui->forget_label->setCursor(Qt::PointingHandCursor);
     connect(ui->forget_label,&ClickedLabel::clicked,this,&LoginDialog::slot_forget_pwd);
+
+    // 隐藏和显示密码
+    ui->pass_visible->setCursor(Qt::PointingHandCursor);
+    ui->pass_visible->SetState("invisible","invisible_hover","","visible","visible_hover","");
+    connect(ui->pass_visible,&ClickedLabel::clicked,this,[this](){
+        const auto state = ui->pass_visible->GetCurState();
+        ui->pass_lineEdit->setEchoMode(
+            state == ClickLbState::Normal ? QLineEdit::Password : QLineEdit::Normal);
+    });
 
     initHead();// 调用initHead()
     initHttpHandlers();// 注册回调函数
