@@ -267,6 +267,7 @@ server/tests/v1_perf_test.js
 ### 构建与部署
 
 - [CMakePresets 与 vcpkg triplet](开发文档/技术专题/CMakePresets与vcpkg-triplet.md)
+- [CMake 配置、生成与构建三阶段](开发文档/技术专题/CMake配置生成构建三阶段.md)
 - [CMake 管理](开发文档/技术专题/根据本项目架构的CMAKE管理.md)
 - [v1 Linux Docker 部署链](开发文档/部署运维/v1-Linux-Docker部署链.md)
 - [Docker 部署知识：本项目实战](开发文档/技术专题/Docker部署知识-本项目实战.md)

@@ -935,6 +935,7 @@ cmake 执行整个流程
 
 ## 15. 相关文档
 
+- [CMake 配置、生成与构建三阶段](CMake配置生成构建三阶段.md)
 - [CMakePresets.json](../../CMakePresets.json)
 - [Linux Release triplet](../../cmake/triplets/x64-linux-release.cmake)
 - [根据本项目架构的 CMAKE 管理](根据本项目架构的CMAKE管理.md)
